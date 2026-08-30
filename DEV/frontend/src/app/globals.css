@@ -1,0 +1,242 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fdfdfd;
+  --foreground: #09090b;
+  --surface: #f4f4f5;
+  --surface-elevated: #ffffff;
+  --surface-dim: rgba(0, 0, 0, 0.03);
+  --border: rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #52525b;
+  --muted: #a1a1aa;
+  --accent-blue: #2563eb;
+  --accent-violet: #7c3aed;
+  --accent-emerald: #059669;
+  --accent-amber: #d97706;
+  --accent-rose: #e11d48;
+}
+
+.dark {
+  --background: #030303;
+  --foreground: #f4f4f5;
+  --surface: #0a0a0a;
+  --surface-elevated: #111113;
+  --surface-dim: rgba(255, 255, 255, 0.03);
+  --border: rgba(255, 255, 255, 0.06);
+  --glass-bg: rgba(14, 14, 16, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #71717a;
+  --muted: #52525b;
+  --accent-blue: #3b82f6;
+  --accent-violet: #8b5cf6;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: white;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-panel-strong {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(60px) saturate(180%);
+    -webkit-backdrop-filter: blur(60px) saturate(180%);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  .dark .glass-panel-strong {
+    background: rgba(14, 14, 16, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Animated mesh gradient background */
+  .hero-bg {
+    position: relative;
+  }
+
+  .hero-bg::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    left: -15%;
+    width: 55vw;
+    height: 55vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 65%);
+    filter: blur(100px);
+    z-index: 0;
+    animation: drift1 22s ease-in-out infinite alternate;
+  }
+
+  .hero-bg::after {
+    content: '';
+    position: fixed;
+    bottom: -25%;
+    right: -10%;
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 65%);
+    filter: blur(100px);
+    z-index: 0;
+    animation: drift2 28s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift1 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(3%, 8%) scale(1.05); }
+    100% { transform: translate(-2%, 4%) scale(1.1); }
+  }
+
+  @keyframes drift2 {
+    0% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-4%, -6%) scale(1.08); }
+    100% { transform: translate(2%, -3%) scale(1.15); }
+  }
+
+  .text-gradient-hero {
+    background: linear-gradient(135deg, #09090b 20%, #71717a 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dark .text-gradient-hero {
+    background: linear-gradient(135deg, #ffffff 20%, #a1a1aa 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-accent {
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-primary {
+    @apply bg-black text-white font-semibold rounded-full transition-all duration-300;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+  }
+  .dark .btn-primary {
+    @apply bg-white text-black;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+  }
+  .btn-primary:hover {
+    @apply scale-105;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+  }
+  .dark .btn-primary:hover {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-ghost {
+    @apply border border-[var(--border)] text-[var(--foreground)] font-medium rounded-full transition-all duration-300;
+  }
+  .btn-ghost:hover {
+    @apply bg-black/5 border-black/20;
+  }
+  .dark .btn-ghost:hover {
+    @apply bg-white/5 border-white/20;
+  }
+
+  /* Grid dot pattern */
+  .dot-pattern {
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Animated gradient border */
+  @property --angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--angle), transparent 40%, rgba(59,130,246,0.4) 50%, rgba(139,92,246,0.4) 60%, transparent 70%);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    animation: spin-border 4s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes spin-border {
+    to { --angle: 360deg; }
+  }
+
+  /* Stat counter pulse */
+  .stat-glow {
+    text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+  }
+
+  /* Animated glowing pipeline flow lines */
+  .pipeline-glow {
+    background-size: 200% 100%;
+    animation: energy-pulse 2.5s linear infinite;
+  }
+
+  @keyframes energy-pulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}

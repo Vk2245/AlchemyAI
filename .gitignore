@@ -1,0 +1,77 @@
+# ==========================================
+# Alchemy AI - Global Git Ignore
+# ==========================================
+
+# 1. Ignore all .md and .txt files by default
+*.md
+*.txt
+
+# Exceptions to the above rule
+!README.md
+!requirements.txt
+
+# 2. Irrelevant / Old Project Folders
+Testing/
+DEV/skills/
+
+# 3. Scratch & Cleanup Scripts
+cleanup.py
+scratch_chat_test.py
+test_vllm.py
+update_chat.js
+catalogx.db
+
+# 4. Node / Next.js
+node_modules/
+DEV/frontend/node_modules/
+DEV/backend/node_modules/
+DEV/frontend/.next/
+DEV/frontend/out/
+DEV/frontend/dist/
+DEV/backend/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 5. Environment Variables
+.env
+.env.*
+!.env.example
+
+# 6. Build Artifacts & OS Files
+coverage/
+*.tsbuildinfo
+.DS_Store
+
+# 7. Database
+*.db
+*.sqlite
+*.sqlite3
+
+# 8. Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 9. Uploads & Reports (Generated Data)
+DEV/backend/reports/
+DEV/backend/uploads/
+
+# 10. AI / ML Model Artifacts
+AI-ML/training/models/
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.bin
+
+# 11. Datasets
+AI-ML/dataset/
+AI-ML/data/
+
+# 12. Public folder
+DEV/frontend/public/
+
+
+UNI-HACK\AI-ML\Building Product Intelligence AI Module.md

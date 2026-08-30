@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Intelligence Report - AUTO-APPLY AGENT</title>
+    <style>
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #333;
+    line-height: 1.6;
+}
+h1 { color: #1a1a2e; border-bottom: 2px solid #16213e; padding-bottom: 8px; }
+h2 { color: #16213e; margin-top: 24px; }
+h3 { color: #0f3460; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background-color: #16213e; color: white; }
+tr:nth-child(even) { background-color: #f8f9fa; }
+.confidence-high { color: #28a745; font-weight: bold; }
+.confidence-medium { color: #ffc107; font-weight: bold; }
+.confidence-low { color: #dc3545; font-weight: bold; }
+.risk-critical { background-color: #f8d7da; padding: 8px; border-left: 4px solid #dc3545; margin: 8px 0; }
+.risk-high { background-color: #fff3cd; padding: 8px; border-left: 4px solid #ffc107; margin: 8px 0; }
+.risk-medium { background-color: #d1ecf1; padding: 8px; border-left: 4px solid #17a2b8; margin: 8px 0; }
+code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1 id="product-intelligence-report">Product Intelligence Report</h1>
+<p><strong>Generated:</strong> 2026-08-20 05:46 UTC
+<strong>Source:</strong> 85667c5d210f4e87a435d1f25036902e.pdf</p>
+<h2 id="1-product-overview">1. Product Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Product Name</strong></td>
+<td>AUTO-APPLY AGENT</td>
+</tr>
+<tr>
+<td><strong>Manufacturer</strong></td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Part Number</strong></td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Description</strong></td>
+<td>A fully autonomous, multi-agent pipeline that researches the target company/lab, retrieves relevant GitHub projects using RAG, dynamically customizes a LaTeX resume, and writes a hyper-personalized cold email—all with zero human intervention.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-industry-detection">2. Industry Detection</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Industry</strong></td>
+<td>software</td>
+</tr>
+<tr>
+<td><strong>Product Domain</strong></td>
+<td>AI-driven automation solutions</td>
+</tr>
+<tr>
+<td><strong>Product Family</strong></td>
+<td>AI-powered recruitment automation</td>
+</tr>
+<tr>
+<td><strong>Document Type</strong></td>
+<td>spec_sheet</td>
+</tr>
+<tr>
+<td><strong>Confidence</strong></td>
+<td>95%</td>
+</tr>
+<tr>
+<td><strong>Reasoning</strong></td>
+<td>The document describes an AI-based system for automating the recruitment process, including features such as smart profiling, agent research, resume generation, and evaluation metrics. This aligns with software products used in AI and automation domains.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-extracted-attributes">3. Extracted Attributes</h2>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Value</th>
+<th>Unit</th>
+<th>Confidence</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Problem</td>
+<td>Manual cold emailing is extremely time consuming.</td>
+<td></td>
+<td>75%</td>
+<td>Problem : Manual cold emailing is extremely time c</td>
+</tr>
+<tr>
+<td>Solution</td>
+<td>A fully autonomous, multi-agent pipeline that researches the target company/lab, retrieves relevant GitHub projects using RAG, dynamically customizes a LaTeX resume, and writes a hyper-personalized cold email—all with zero human intervention.</td>
+<td></td>
+<td>75%</td>
+<td>Solution : A fully autonomous, multi-agent pipelin</td>
+</tr>
+<tr>
+<td>Smart Profiling &amp; Routing</td>
+<td>Automatically distinguishes between Companies and Startups altering the entire pipeline's behavior.</td>
+<td></td>
+<td>75%</td>
+<td>1. Smart Profiling &amp; Routing: Automatically distin</td>
+</tr>
+<tr>
+<td>Agentic Research</td>
+<td>Analyzes target (company), industry, tech stack, and hiring focus and returns a json output.</td>
+<td></td>
+<td>75%</td>
+<td>2. Agentic Research: Analyzes target (company), in</td>
+</tr>
+<tr>
+<td>RAG-Retrieval</td>
+<td>Uses FAISS and MiniLM to semantically match the company's tech stack against my cached GitHub repositories.</td>
+<td></td>
+<td>75%</td>
+<td>3. RAG-Retrieval: Uses FAISS and MiniLM to semanti</td>
+</tr>
+<tr>
+<td>Resume Generation</td>
+<td>Gemini 2.5 Flash writes a highly customized resume tailored to the target company, using all the context and research gathered by the previous AI nodes.</td>
+<td></td>
+<td>75%</td>
+<td>4. Resume Generation: Gemini 2.5 Flash writes a hi</td>
+</tr>
+<tr>
+<td>Fallback Safety</td>
+<td>Built-in dry-run fallbacks and LLM retry loops ensure the pipeline never crashes mid-execution.</td>
+<td></td>
+<td>75%</td>
+<td>5. Fallback Safety: Built-in dry-run fallbacks and</td>
+</tr>
+<tr>
+<td>FAISS similarity search</td>
+<td>between ‘Target company profile’ and ‘Resume chunks’ between [-1 to 1]</td>
+<td></td>
+<td>75%</td>
+<td>1. <strong>FAISS  similarity search</strong> between “Target co</td>
+</tr>
+<tr>
+<td>Resume quality check evaluation</td>
+<td>‘ LLM as a Judge’ (feeding the complete resume.tex as a prompt to the LLM (Qwen)</td>
+<td></td>
+<td>75%</td>
+<td>2. Resume quality check evaluation : ‘ LLM as a Ju</td>
+</tr>
+<tr>
+<td>Resume score</td>
+<td>score &gt;7 = pass , score &lt;7 = retry and if retry count &gt;2 = fail</td>
+<td></td>
+<td>75%</td>
+<td>3. Resume score : score &gt;7 = pass , score &lt;7 = ret</td>
+</tr>
+<tr>
+<td>Optional flags like company priority</td>
+<td>company size &lt;100 = +30 pts &gt;100 = -12pts contact title (ceo , ceo, lead, HR etc) : +12 pts list quality (unverified/scraped ) : -15 pts</td>
+<td></td>
+<td>75%</td>
+<td>4. Optional flags like company priority (HIGH &gt;=70</td>
+</tr>
+<tr>
+<td>Why Gemini Search over Tavily</td>
+<td>Built the research node using Gemini 2.5 (Flash) with Google Search grounding rather than a dedicated search API like Tavily.</td>
+<td></td>
+<td>75%</td>
+<td>(WHY GEMINI SEARCH OVER TAVILY?) Built the researc</td>
+</tr>
+<tr>
+<td>Token Optimisation</td>
+<td>Helps in Token Optimisation.</td>
+<td></td>
+<td>75%</td>
+<td>Helps in Token Optimisation.</td>
+</tr>
+<tr>
+<td>Deeper Reasoning</td>
+<td>Deeper Reasoning: Gemini can infer subtle details (like whether a target is an startup vs a Corporate entity) from the search context immediately. Fixes the context bloating issue</td>
+<td></td>
+<td>75%</td>
+<td>Deeper Reasoning: Gemini can infer subtle details</td>
+</tr>
+<tr>
+<td>Cost &amp; Rate Limits</td>
+<td>Cost &amp; Rate Limits: The Gemini Flash (2.5) free tier offers high rate limits than 3.x series. Lowers the latency.</td>
+<td></td>
+<td>75%</td>
+<td>Cost &amp; Rate Limits: The Gemini Flash (2.5) free ti</td>
+</tr>
+<tr>
+<td>Spam filters</td>
+<td>Spam filters penalize identical mass emails.</td>
+<td></td>
+<td>75%</td>
+<td>1. <strong>customization</strong> : Spam filters penalize ident</td>
+</tr>
+<tr>
+<td>Simple Plain Text</td>
+<td>We send basic, normal-looking emails instead of heavily designed HTML marketing emails.</td>
+<td></td>
+<td>75%</td>
+<td>2. Simple Plain Text : We send basic, normal-looki</td>
+</tr>
+<tr>
+<td>Safe Vocabulary Guardrails</td>
+<td>The Email Writer LLM is strictly prompted to avoid promotional words (e.g., 'stipend,' 'salary,' 'paid).</td>
+<td></td>
+<td>75%</td>
+<td>3. Safe Vocabulary Guardrails : The Email Writer L</td>
+</tr>
+<tr>
+<td>SMTP Integration</td>
+<td>Sent directly via verified SMTP (linked to my personal email) rather than third-party mass-mailing services (like Mailchimp or SendGrid) which are often flagged by enterprise spam filters.</td>
+<td></td>
+<td>75%</td>
+<td>4. SMTP Integration : Sent directly via verified S</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-taxonomy-classification">4. Taxonomy Classification</h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Category</strong></td>
+<td>Information Technology &gt; Software &gt; Application Software</td>
+</tr>
+<tr>
+<td><strong>Code</strong></td>
+<td>43000000</td>
+</tr>
+<tr>
+<td><strong>Confidence</strong></td>
+<td>95%</td>
+</tr>
+<tr>
+<td><strong>Reasoning</strong></td>
+<td>The product is described as a fully autonomous, multi-agent pipeline for generating personalized cold emails and resumes. This aligns closely with application software, specifically tools designed to automate complex processes and generate content, which fits the description of the product.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-validation-results">5. Validation Results</h2>
+<p><strong>Status:</strong> PASSED
+<strong>Errors:</strong> 0
+<strong>Warnings:</strong> 0</p>
+<h2 id="6-confidence-scoring">6. Confidence Scoring</h2>
+<p><strong>Record Confidence:</strong> 78%
+<strong>Total Attributes:</strong> 19
+<strong>High Confidence (&gt;=70%):</strong> 19
+<strong>Medium Confidence (40-70%):</strong> 0
+<strong>Low Confidence (&lt;40%):</strong> 0</p>
+<h2 id="7-safety-and-compliance-risk-radar">7. Safety and Compliance Risk Radar</h2>
+<p><strong>Total Flags:</strong> 8</p>
+<h3 id="critical-missing-license-key">[CRITICAL] Missing License Key</h3>
+<p>The missing license key for the AUTO-APPLY AGENT software is a big deal because it means the program can't properly check if it's being used legally. Without this key, anyone could use the software without paying, which could lead to people stealing data or breaking the rules. That’s a serious risk in industries that handle sensitive information, like healthcare or finance.</p>
+<h3 id="high-missing-update-notification">[HIGH] Missing Update Notification</h3>
+<p>The missing update notification for the AUTO-APPLY AGENT software could be a big problem because it means users might not know when important security fixes or new features are available. This delay could leave your systems vulnerable to attacks, which is very serious in our industry. Plus, if users don't get updates on time, they might stop using your software altogether, which could hurt business.</p>
+<h3 id="high-missing-user-agreement">[HIGH] Missing User Agreement</h3>
+<p>The missing user agreement for the AUTO-APPLY AGENT could lead to legal issues and upset users if there's confusion about how their information is used. This is important because it affects trust between the users and the developers, which is crucial in any software industry to keep people safe and happy with the service.</p>
+<h3 id="high-missing-privacy-policy">[HIGH] Missing Privacy Policy</h3>
+<p>The missing privacy policy for AUTO-APPLY AGENT could lead to problems where users' personal information isn't protected properly. This could make it easier for bad guys to steal user data, which not only hurts users but also puts the company at risk of fines and other legal issues.</p>
+<h3 id="medium-missing-developer-contact-information">[MEDIUM] Missing Developer Contact Information</h3>
+<p>The missing developer contact information for the 'AUTO-APPLY AGENT' could make it harder for users to get help if something goes wrong with the software. Without a way to reach the developers, fixing issues and improving the product would be more difficult, which could lead to unhappy customers and potential legal problems if there's an accident or serious issue.</p>
+<h3 id="high-missing-terms-of-service">[HIGH] Missing Terms of Service</h3>
+<p>The missing terms of service for the AUTO-APPLY AGENT could lead to misuse of the tool, which might harm users or violate privacy laws. This makes it a serious safety and compliance risk in the software industry.</p>
+<h3 id="high-missing-documentation">[HIGH] Missing Documentation</h3>
+<p>The missing documentation for the AUTO-APPLY AGENT could lead to users not understanding how to use it correctly, which might result in mistakes or errors that could be dangerous in our industry. For example, if someone misuses the agent, it could affect the system's performance or cause data loss.</p>
+<h3 id="high-missing-compliance-certification">[HIGH] Missing Compliance Certification</h3>
+<p>The AUTO-APPLY AGENT needs to have a compliance certification because it's used in our industry, where following certain rules and standards is crucial for protecting customers' data and ensuring fair practices. Without this certification, there's a risk of facing legal problems and losing the trust of both users and other businesses who work with us.</p>
+<h2 id="9-auto-generated-product-one-pager">9. Auto-Generated Product One-Pager</h2>
+<pre><code class="language-markdown"># AUTO-APPLY AGENT
+
+## Product Overview
+- **Name:** AUTO-APPLY AGENT
+- **Manufacturer:** N/A
+- **Part Number:** N/A
+- **Industry:** Software
+- **Category:** Information Technology
+- **Description:** A fully autonomous, multi-agent pipeline that researches the target company/lab, retrieves relevant GitHub projects using RAG, dynamically customizes a LaTeX resume, and writes a hyper-personalized cold email—all with zero human intervention.
+
+## Key Specifications
+
+| Attribute Name | Value | Confidence | Unit |
+|----------------|-------|------------|-----|
+| Problem         | Manual cold emailing is extremely time consuming. | 75% | n/a |
+| Solution        | A fully autonomous, multi-agent pipeline that researches the target company/lab, retrieves relevant GitHub projects using RAG, dynamically customizes a LaTeX resume, and writes a hyper-personalized cold email—all with zero human intervention. | 75% | n/a |
+| Smart Profiling &amp; Routing | Automatically distinguishes between Companies and Startups altering the entire pipeline's behavior. | 75% | n/a |
+| Agentic Research | Analyzes target (company), industry, tech stack, and hiring focus and returns a json output. | 75% | n/a |
+| RAG-Retrieval    | Uses FAISS and MiniLM to semantically match the company's tech stack against my cached GitHub repositories. | 75% | n/a |
+| Resume Generation | Gemini 2.5 Flash writes a highly customized resume tailored to the target company, using all the context and research gathered by the previous AI nodes. | 75% | n/a |
+| Fallback Safety  | Built-in dry-run fallbacks and LLM retry loops ensure the pipeline never crashes mid-execution. | 75% | n/a |
+| FAISS similarity search | between ‘Target company profile’ and ‘Resume chunks’ between [-1 to 1] | 75% | n/a |
+| Resume quality check evaluation | ‘LLM as a Judge’ (feeding the complete resume.tex as a prompt to the LLM (Qwen)) | 75% | n/a |
+| Resume score     | score &gt;7 = pass , score &lt;7 = retry and if retry count &gt;2 = fail | 75% | n/a |
+| Optional flags like company priority | company size &lt;100 = +30 pts &gt;100 = -12pts contact title (CEO, CTO, Lead, HR etc) : +12 pts list quality (unverified/scraped) : -15 pts | 75% | n/a |
+| Why Gemini Search over Tavily | Built the research node using Gemini 2.5 (Flash) with Google Search grounding rather than a dedicated search API like Tavily. | 75% | n/a |
+| Token Optimisation | Helps in Token Optimisation. | 75% | n/a |
+| Deeper Reasoning | Deeper Reasoning: Gemini can infer subtle details (like whether a target is an startup vs a Corporate entity) from the search context immediately. Fixes the context bloating issue | 75% | n/a |
+| Cost &amp; Rate Limits | Cost &amp; Rate Limits: The Gemini Flash (2.5) free tier offers high rate limits than 3.x series. Lowers the latency. | 75% | n/a |
+| Spam filters     | Spam filters penalize identical mass emails. | 75% | n/a |
+| Simple Plain Text | We send basic, normal-looking emails instead of heavily designed HTML marketing emails. | 75% | n/a |
+| Safe Vocabulary Guardrails | The Email Writer LLM is strictly prompted to avoid promotional words (e.g., 'stipend,' 'salary,' 'paid). | 75% | n/a |
+| SMTP Integration  | Sent directly via verified SMTP (linked to my personal email) rather than third-party mass-mailing services (like Mailchimp or SendGrid) which are often flagged by enterprise spam filters. | 75% | n/a |
+
+## Confidence Badge
+- **Record Confidence:** High (0.775)
+
+## Quality Notes
+- **Validation Passed:** Yes
+- **Fields for Review:** None
+
+## Certifications and Compliance
+- **Not Available**
+</code></pre>
+<hr />
+<p><em>Report generated by Product Intelligence Platform AI-ML Module</em>
+<em>Content hash: cf512a87e28816d0</em></p>
+</body>
+</html>

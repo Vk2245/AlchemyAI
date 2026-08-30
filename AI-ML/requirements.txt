@@ -1,0 +1,41 @@
+# PDF parsing
+pymupdf>=1.24.0
+pymupdf4llm>=0.0.10
+
+# LLM orchestration
+litellm>=1.40.0
+instructor>=1.3.0
+ollama>=0.3.0
+
+# Token optimization
+python-toon>=0.2.0
+
+# Structured data
+pydantic>=2.7.0
+
+# Embeddings and vector store
+chromadb>=0.5.0
+
+# Local vision embeddings (nomic-embed-vision-v1.5)
+transformers>=4.40.0
+torch>=2.2.0
+Pillow>=10.0.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# PDF report generation (compulsory)
+markdown>=3.6
+weasyprint>=62.0
+
+# Agentic research layer (LangGraph)
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# Web scraping tools (Tier 1)
+duckduckgo-search>=6.0.0
+playwright>=1.40.0
+requests>=2.31.0
+
+# Testing
+pytest>=8.0.0
