@@ -8,9 +8,10 @@ import {
   ScanLine,
   Globe2,
   Layers,
-  Tags,
   Brain,
   AlertTriangle,
+  Search,
+  ShieldCheck,
   FileOutput,
   FileBox,
   Binary,
@@ -20,24 +21,24 @@ import {
 
 export default function BranchedPipeline() {
   const commonTail = [
-    { icon: Tags, label: "Taxonomy", color: "#ef4444" },
-    { icon: Brain, label: "AI Agent Research", color: "#ec4899" },
-    { icon: AlertTriangle, label: "Risk Radar", color: "#f97316" },
-    { icon: FileOutput, label: "Intelligence Gen", color: "#06b6d4" },
+    { icon: Brain, label: "Cloud LLM Gaps", color: "#ec4899" },
+    { icon: AlertTriangle, label: "Validation & HITL", color: "#ef4444" },
+    { icon: Search, label: "Risk Radar", color: "#f97316" },
+    { icon: ShieldCheck, label: "Cryptographic Seal", color: "#14b8a6" },
   ];
 
   const pdfBranch = [
-    { icon: FileText, label: "PDF Document", color: "#3b82f6" },
-    { icon: ScanLine, label: "OCR Vision", color: "#8b5cf6" },
-    { icon: Globe2, label: "Industry Detection", color: "#10b981" },
-    { icon: Layers, label: "Attribute Extraction", color: "#f59e0b" },
+    { icon: FileText, label: "Document Ingest", color: "#3b82f6" },
+    { icon: ScanLine, label: "OCR Fallback", color: "#8b5cf6" },
+    { icon: Globe2, label: "Classification", color: "#10b981" },
+    { icon: Layers, label: "Local NER", color: "#f59e0b" },
   ];
 
   const excelBranch = [
-    { icon: TableProperties, label: "Excel Catalog", color: "#22c55e" },
+    { icon: TableProperties, label: "Bulk Excel/CSV", color: "#22c55e" },
     { icon: Binary, label: "Data Structuring", color: "#6366f1" },
-    { icon: Database, label: "Categorization", color: "#14b8a6" },
-    { icon: Network, label: "Bulk Enrichment", color: "#eab308" },
+    { icon: Database, label: "Row Categorization", color: "#14b8a6" },
+    { icon: Network, label: "LLM Chunking", color: "#eab308" },
   ];
 
   const StageNode = ({ stage, index, delayOffset = 0 }: { stage: any, index: number, delayOffset?: number }) => (

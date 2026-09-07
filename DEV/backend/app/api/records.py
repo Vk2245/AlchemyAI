@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.database import Document, ProductRecord, Report, get_db
+from app.models.database import Document, DocumentRecord, Report, get_db
 from app.api.auth import get_current_user, User
 
 
@@ -39,9 +39,9 @@ async def list_records(
 
     records = []
     for doc in documents:
-        # Fetch associated product record
+        # Fetch associated document record
         pr_result = await db.execute(
-            select(ProductRecord).where(ProductRecord.document_id == doc.id)
+            select(DocumentRecord).where(DocumentRecord.document_id == doc.id)
         )
         pr = pr_result.scalars().first()
 
@@ -51,10 +51,11 @@ async def list_records(
             "status": doc.status,
             "uploaded_at": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
             "processed_at": doc.processed_at.isoformat() if doc.processed_at else None,
-            "product_name": pr.product_name if pr else None,
-            "manufacturer": pr.manufacturer if pr else None,
-            "industry": pr.industry if pr else None,
+            "document_title": pr.document_title if pr else None,
+            "primary_party": pr.primary_party if pr else None,
+            "document_type": pr.document_type if pr else None,
             "record_confidence": pr.record_confidence if pr else None,
+            "human_verified": pr.human_verified if pr else False,
             "risk_level": pr.risk_level if pr else None,
             "content_hash": pr.content_hash if pr else None,
         })
@@ -82,7 +83,7 @@ async def get_record(
         raise HTTPException(status_code=404, detail="Document not found")
 
     pr_result = await db.execute(
-        select(ProductRecord).where(ProductRecord.document_id == doc_id)
+        select(DocumentRecord).where(DocumentRecord.document_id == doc_id)
     )
     pr = pr_result.scalars().first()
 
@@ -101,13 +102,14 @@ async def get_record(
             "uploaded_at": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
             "processed_at": doc.processed_at.isoformat() if doc.processed_at else None,
         },
-        "product_record": {
-            "product_name": pr.product_name,
-            "manufacturer": pr.manufacturer,
+        "document_record": {
+            "document_title": pr.document_title,
+            "primary_party": pr.primary_party,
             "part_number": pr.part_number,
-            "industry": pr.industry,
+            "document_type": pr.document_type,
             "category": pr.category,
             "record_confidence": pr.record_confidence,
+            "human_verified": pr.human_verified,
             "validation_passed": pr.validation_passed,
             "risk_level": pr.risk_level,
             "content_hash": pr.content_hash,
@@ -170,7 +172,7 @@ async def regenerate_all_pdfs(db: AsyncSession = Depends(get_db)):
     for r in reports:
         try:
             if r.report_markdown and r.report_pdf_path:
-                html_content = render_to_html(r.report_markdown, title="Product Intelligence Report")
+                html_content = render_to_html(r.report_markdown, title="Document Intelligence Report")
                 # Force create parent dirs
                 Path(r.report_pdf_path).parent.mkdir(parents=True, exist_ok=True)
                 render_to_pdf(html_content, r.report_pdf_path)
@@ -239,7 +241,7 @@ async def download_csv_report(
         raise HTTPException(status_code=404, detail="Document not found")
         
     pr_result = await db.execute(
-        select(ProductRecord).where(ProductRecord.document_id == doc_id)
+        select(DocumentRecord).where(DocumentRecord.document_id == doc_id)
     )
     pr = pr_result.scalars().first()
     

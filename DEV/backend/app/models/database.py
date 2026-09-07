@@ -4,7 +4,7 @@ SQLAlchemy database models and async engine setup.
 Tables:
   - users: JWT auth accounts
   - documents: uploaded PDFs
-  - product_records: extracted intelligence + tamper-proof hash
+  - document_records: extracted intelligence + tamper-proof hash
   - reports: generated PDF reports
   - audit_log: security audit trail
 """
@@ -77,7 +77,7 @@ class Document(Base):
 
     # Relationships
     owner: Mapped["User"] = relationship(back_populates="documents")
-    product_record: Mapped[Optional["ProductRecord"]] = relationship(
+    document_record: Mapped[Optional["DocumentRecord"]] = relationship(
         back_populates="document", cascade="all, delete-orphan", uselist=False
     )
     report: Mapped[Optional["Report"]] = relationship(
@@ -88,17 +88,17 @@ class Document(Base):
         return f"<Document {self.original_filename} ({self.status})>"
 
 
-class ProductRecord(Base):
-    __tablename__ = "product_records"
+class DocumentRecord(Base):
+    __tablename__ = "document_records"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     document_id: Mapped[int] = mapped_column(ForeignKey("documents.id"), unique=True, nullable=False)
 
-    # Core product info
-    product_name: Mapped[str] = mapped_column(String(500), nullable=True, index=True)
-    manufacturer: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    # Core document info
+    document_title: Mapped[str] = mapped_column(String(500), nullable=True, index=True)
+    primary_party: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     part_number: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
-    industry: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    document_type: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     category: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
 
     # Full extracted data (JSON blob)
@@ -112,15 +112,20 @@ class ProductRecord(Base):
     # Tamper-proof: HMAC-SHA256 of record_data
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
 
+    # Human-in-the-Loop
+    human_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    verified_by: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
 
     # Relationships
-    document: Mapped["Document"] = relationship(back_populates="product_record")
+    document: Mapped["Document"] = relationship(back_populates="document_record")
 
     def __repr__(self) -> str:
-        return f"<ProductRecord {self.product_name} (conf={self.record_confidence:.0%})>"
+        return f"<DocumentRecord {self.document_title} (conf={self.record_confidence:.0%})>"
 
 
 class Report(Base):

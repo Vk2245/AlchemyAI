@@ -120,11 +120,13 @@ from app.api.auth import router as auth_router
 from app.api.process import router as process_router
 from app.api.records import router as records_router
 from app.api.chat import router as chat_router
+from app.api.review import router as review_router
 
 app.include_router(auth_router)
 app.include_router(process_router)
 app.include_router(records_router)
 app.include_router(chat_router)
+app.include_router(review_router)
 
 
 # ---------------------------------------------------------------------------

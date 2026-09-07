@@ -8,9 +8,9 @@ import { ThemeProvider } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Alchemy AI | AI-Powered Product Intelligence",
+  title: "Alchemy AI | AI-Powered Document Intelligence",
   description:
-    "Transform product PDFs into structured, validated, tamper-proof data using autonomous AI agents.",
+    "Transform documents into structured, validated, tamper-proof data using autonomous AI agents.",
   icons: {
     icon: "/logo_square.png",
     apple: "/logo_square.png",

@@ -148,7 +148,7 @@ export default function BulkExcelUpload({
                   <FileSpreadsheet size={36} strokeWidth={1.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
-                  Bulk Process Catalog
+                  Bulk Process Documents
                 </h3>
                 <p className="text-[var(--secondary)] text-sm mb-7 max-w-xs leading-relaxed">
                   Upload an Excel or CSV file to extract many items at once.

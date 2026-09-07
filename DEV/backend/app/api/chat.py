@@ -18,7 +18,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.database import (
-    Document, ProductRecord, ChatMessage, get_db, async_session_factory,
+    Document, DocumentRecord, ChatMessage, get_db, async_session_factory,
 )
 from app.api.auth import get_current_user, User
 from app.core.config import AI_ML_DIR, DEFAULT_PROVIDER
@@ -48,8 +48,8 @@ class ChatResponse(BaseModel):
 async def _load_user_records(user_id: int, db: AsyncSession) -> list[dict]:
     """Load all product records belonging to the user, joined with document info."""
     result = await db.execute(
-        select(Document, ProductRecord)
-        .outerjoin(ProductRecord, ProductRecord.document_id == Document.id)
+        select(Document, DocumentRecord)
+        .outerjoin(DocumentRecord, DocumentRecord.document_id == Document.id)
         .where(Document.owner_id == user_id)
         .order_by(Document.uploaded_at.desc())
     )

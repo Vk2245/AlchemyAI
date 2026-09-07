@@ -151,10 +151,10 @@ export default function UploadZone({
                   <UploadCloud size={36} strokeWidth={1.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
-                  Drop your catalog PDF
+                  Drop your document PDF
                 </h3>
                 <p className="text-[var(--secondary)] text-sm mb-7 max-w-xs leading-relaxed">
-                  Product datasheets, spec sheets, or safety documents — up to 50 MB.
+                  Invoices, contracts, or legal documents — up to 50 MB.
                 </p>
                 <button
                   onClick={() => !disabled && fileInputRef.current?.click()}

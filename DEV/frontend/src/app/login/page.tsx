@@ -110,7 +110,7 @@ export default function LoginPage() {
             Welcome back
           </h1>
           <p className="text-[var(--secondary)]">
-            Sign in to access your product intelligence dashboard.
+            Sign in to access your document intelligence dashboard.
           </p>
         </div>
 

@@ -30,10 +30,10 @@ import BranchedPipeline from "@/components/BranchedPipeline";
 import { useState } from "react";
 
 const stats = [
-  { label: "Industries Supported", value: "8+", icon: Globe2 },
-  { label: "Attributes Extracted", value: "50+", icon: Layers },
-  { label: "Inference Speed", value: "<50ms", icon: Zap },
-  { label: "Accuracy Rate", value: "94%", icon: BarChart3 },
+  { label: "Document Types", value: "Any", icon: Globe2 },
+  { label: "Entities Recognized", value: "100+", icon: Layers },
+  { label: "Local OCR Speed", value: "<100ms", icon: Zap },
+  { label: "Tamper-Proofing", value: "SHA-256", icon: ShieldCheck },
 ];
 
 const features = [
@@ -41,58 +41,58 @@ const features = [
     icon: Bot,
     color: "text-blue-400",
     bg: "bg-blue-500/10 border-blue-500/20",
-    title: "Autonomous AI Agents",
-    desc: "When your PDF is missing specs, our agents autonomously search the web, scrape data, and judge quality before filling gaps.",
+    title: "Hybrid Agentic Pipeline",
+    desc: "Uses blazing fast local NER (spaCy) for standard entities, escalating complex fields to cloud LLMs (Groq/Gemini) to save tokens.",
   },
   {
     icon: ShieldCheck,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
     title: "Tamper-Proof Records",
-    desc: "Every extraction is cryptographically signed with HMAC-SHA256. Modify a single byte and the hash breaks — verifiable live.",
-  },
-  {
-    icon: Zap,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10 border-amber-500/20",
-    title: "Hybrid Fast Path",
-    desc: "DistilBERT ONNX models deliver <50ms CPU inference for industry classification. No GPU required.",
+    desc: "Every extraction is cryptographically signed with HMAC-SHA256. Modify a single byte and the frontend flashes a TAMPERED warning.",
   },
   {
     icon: Search,
-    color: "text-violet-400",
-    bg: "bg-violet-500/10 border-violet-500/20",
-    title: "3-Tier Web Research",
-    desc: "DuckDuckGo → Playwright/Jina → Firecrawl OSS → Gemini fallback. Each tier is scored by an LLM-as-Judge.",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10 border-amber-500/20",
+    title: "Risk & Anomaly Radar",
+    desc: "Autonomous agents check vendor email domains and run live web searches (Tavily/Serper) to flag potential shell companies.",
   },
   {
-    icon: Globe2,
+    icon: ScanLine,
+    color: "text-violet-400",
+    bg: "bg-violet-500/10 border-violet-500/20",
+    title: "4-Tier Vision Fallback",
+    desc: "Tesseract OCR → OCR.space → Groq Vision → Gemini. Ensures 100% extraction accuracy even on heavily degraded scans.",
+  },
+  {
+    icon: AlertTriangle,
     color: "text-rose-400",
     bg: "bg-rose-500/10 border-rose-500/20",
-    title: "Industry Agnostic",
-    desc: "Zero-shot classification adapts to electrical, pharma, food, agri, software, and more. No retraining needed.",
+    title: "Human-in-the-Loop",
+    desc: "Any entity scoring below 85% confidence is flagged in an intuitive review dashboard. Human edits instantly seal the record.",
   },
   {
     icon: FileText,
     color: "text-cyan-400",
     bg: "bg-cyan-500/10 border-cyan-500/20",
-    title: "PDF Product Intelligence",
-    desc: "Automatic executive one-pager and full pipeline intelligence rendered as downloadable PDF with WeasyPrint.",
+    title: "Map-Reduce Summarization",
+    desc: "Instead of stuffing 100 pages into an LLM, we feed only the extracted structured JSON to generate perfect executive summaries.",
   },
 ];
 
 const steps = [
-  { num: "01", title: "Upload PDF", desc: "Drag-and-drop any product catalog, datasheet, or spec sheet." },
-  { num: "02", title: "AI Extraction", desc: "8-stage pipeline extracts, validates, scores, and classifies data." },
-  { num: "03", title: "Agent Research", desc: "Autonomous agents fill missing gaps by searching the web." },
-  { num: "04", title: "Verified Product Intelligence", desc: "Download a tamper-proof, HMAC-signed product intelligence." },
+  { num: "01", title: "Upload Document", desc: "Drag-and-drop any invoice, contract, or bulk Excel dump." },
+  { num: "02", title: "9-Stage Pipeline", desc: "AI autonomously classifies, extracts, and validates using local & cloud models." },
+  { num: "03", title: "HITL & Risk Radar", desc: "Human reviews low-confidence fields while AI audits vendor legitimacy." },
+  { num: "04", title: "Cryptographic Seal", desc: "Final structured JSON is HMAC-signed and saved securely to the database." },
 ];
 
 const quickAccess = [
   {
     icon: LayoutDashboard,
     title: "Dashboard",
-    desc: "View all analyzed catalogs, confidence scores, and processing history.",
+    desc: "View all analyzed documents, risk flags, and processing history.",
     href: "/dashboard",
     color: "from-blue-500/20 to-blue-600/5",
     borderColor: "hover:border-blue-500/30",
@@ -119,14 +119,14 @@ const quickAccess = [
 ];
 
 const pipelineStages = [
-  { icon: FileSearch, label: "PDF Ingestion", color: "#3b82f6" },
-  { icon: ScanLine, label: "OCR", color: "#8b5cf6" },
-  { icon: Globe2, label: "Industry Detection", color: "#10b981" },
-  { icon: Layers, label: "Attribute Extraction", color: "#f59e0b" },
-  { icon: Tags, label: "Taxonomy", color: "#ef4444" },
-  { icon: Brain, label: "AI Agent Research", color: "#ec4899" },
-  { icon: AlertTriangle, label: "Risk Radar", color: "#f97316" },
-  { icon: FileOutput, label: "Intelligence Gen", color: "#06b6d4" },
+  { icon: FileSearch, label: "Ingestion & OCR", color: "#3b82f6" },
+  { icon: Globe2, label: "Document Classification", color: "#10b981" },
+  { icon: Layers, label: "Local NER Extraction", color: "#8b5cf6" },
+  { icon: Brain, label: "Cloud LLM Fallback", color: "#ec4899" },
+  { icon: AlertTriangle, label: "Validation & HITL", color: "#ef4444" },
+  { icon: Search, label: "Risk Radar", color: "#f97316" },
+  { icon: FileText, label: "Map-Reduce Summary", color: "#06b6d4" },
+  { icon: ShieldCheck, label: "Cryptographic Seal", color: "#14b8a6" },
 ];
 
 export default function Home() {
@@ -150,17 +150,17 @@ export default function Home() {
         </motion.h1>
 
         {/* Video Animation Overlay */}
-        <div className="w-screen relative left-1/2 -translate-x-1/2 pointer-events-none mix-blend-screen -my-6 md:-my-12 flex justify-center items-center">
+        <div className="w-full max-w-[1000px] aspect-video relative pointer-events-none -my-10 md:-my-20 flex justify-center items-center mix-blend-multiply dark:mix-blend-screen invert hue-rotate-180 dark:invert-0 dark:hue-rotate-0 contrast-110 saturate-110 dark:contrast-100 dark:saturate-100">
           <video 
             src="/video.mp4" 
             autoPlay 
             loop 
             muted 
             playsInline
-            className="w-full h-[40vh] md:h-[55vh] object-cover opacity-90"
+            className="w-full h-full object-cover opacity-90"
             style={{
-              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-              WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)"
+              maskImage: "linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)"
             }}
           />
         </div>
@@ -274,7 +274,7 @@ export default function Home() {
             Explore Your Workspace
           </h2>
           <p className="text-sm text-[var(--secondary)] max-w-md mx-auto">
-            Jump into any module — analyze documents, chat with your data, or browse product intelligence.
+            Jump into any module — analyze documents, chat with your data, or browse document intelligence.
           </p>
         </div>
 
@@ -329,7 +329,7 @@ export default function Home() {
             How It Works
           </h2>
           <p className="text-sm text-[var(--secondary)] max-w-lg mx-auto">
-            Four steps from raw PDF to verified, tamper-proof product intelligence.
+            Four steps from raw PDF to verified, tamper-proof document intelligence.
           </p>
         </div>
 
@@ -413,7 +413,7 @@ export default function Home() {
             Ready to extract intelligence?
           </h2>
           <p className="text-sm text-[var(--secondary)] mb-6 max-w-md mx-auto relative z-10">
-            Create an account and start analyzing your first product catalog in under 60 seconds.
+            Create an account and start analyzing your business documents in under 60 seconds.
           </p>
           <div className="flex items-center justify-center gap-3 relative z-10">
             <Link

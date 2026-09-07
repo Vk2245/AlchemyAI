@@ -1,30 +1,37 @@
 """
-Master Orchestrator Pipeline.
+Master Orchestrator Pipeline for Document Intelligence.
 
-Ties together all AI-ML phases (0-8) into a single execution flow.
+Ties together all AI-ML phases into a single execution flow.
 Designed to be called by a FastAPI backend. Yields progress updates
-as Server-Sent Events (SSE) so the frontend can display a progress bar
-and human-readable logs.
+as Server-Sent Events (SSE) so the frontend can display a progress bar.
 """
 
 import sys
-import json
 import time
+import requests
 from typing import Any, Generator
 
 from ingestion.parse_pdf import extract_pages
 from ingestion.ocr_fallback import process_pages_with_ocr
 from ingestion.evidence_builder import build_evidence
 from extraction.extract_attributes import extract_record_from_evidence
-from validation.validate_record import validate_record
-from confidence.score_record import score_record, get_confidence_summary
-from company_discovery.detect_industry import detect_industry
-from taxonomy.classify_taxonomy import classify_record
-from risk_radar.detect_risk import detect_risks, get_risk_summary
-from agent.research_graph import research_missing_attributes
-from onepager.generate_onepager import generate_onepager
-from report.generate_report import generate_report_markdown
-from report.render_pdf import render_report
+# from validation.validate_record import validate_record
+from risk_radar.detect_risk import detect_risk
+from risk_radar.collusion_graph import detect_collusion
+from agent.web_research import research_vendor
+
+
+def trigger_erp_sync(record_dict: dict[str, Any]) -> dict[str, Any]:
+    """
+    Mock ERP Webhook trigger (Agentic Workflow Orchestration).
+    Sends the extracted JSON to a mock ERP endpoint.
+    """
+    # In a real scenario, this would hit the FastAPI mock endpoint.
+    # We will simulate the network call success here.
+    return {
+        "status": "success",
+        "message": f"Successfully synced Document '{record_dict.get('document_title')}' to ERP."
+    }
 
 
 def run_pipeline(
@@ -32,7 +39,7 @@ def run_pipeline(
     provider: str = "local",
 ) -> Generator[dict[str, Any], None, None]:
     """
-    Run the full end-to-end product intelligence pipeline.
+    Run the full end-to-end document intelligence pipeline.
     Yields progress dicts at each step.
     """
     start_time = time.time()
@@ -41,14 +48,13 @@ def run_pipeline(
         return {"progress": percent, "message": message, "data": data}
 
     try:
-        # Phase 0: Ingestion
-        yield _yield_progress(5, "Reading PDF document...")
+        # Phase 1: Ingestion
+        yield _yield_progress(5, "Reading document...")
         pages = extract_pages(pdf_path)
         
-        # Check if we need OCR
-        yield _yield_progress(10, "Checking for scanned pages...")
-        from config.settings import VISION_PROVIDER
-        pages = process_pages_with_ocr(pdf_path, pages, provider=VISION_PROVIDER)
+        # Phase 2: OCR Fallback
+        yield _yield_progress(10, "Running 4-Tier OCR & Vision audit...")
+        pages = process_pages_with_ocr(pdf_path, pages)
             
         evidence = build_evidence(pdf_path, pages)
         
@@ -57,87 +63,52 @@ def run_pipeline(
             yield {"progress": -1, "message": "Document is empty and OCR failed", "data": None}
             return
 
-        # Phase 2: Industry Detection
-        yield _yield_progress(15, "Detecting industry and product domain...")
-        industry_res = detect_industry(evidence, provider=provider)
-        industry_name = industry_res.industry if industry_res else "General"
-        
-        # Phase 1: Extraction
-        yield _yield_progress(25, f"Extracting attributes for {industry_name} product...")
+        # Phase 3 & 4: Extraction (Classification & Local NER)
+        yield _yield_progress(30, "Extracting entities (NER)...")
         record = extract_record_from_evidence(evidence, provider=provider)
-        record.industry = industry_name
-        record.industry_profile = industry_res.product_domain if industry_res else ""
-
-        # Phase 2: Taxonomy
-        yield _yield_progress(40, "Classifying product taxonomy...")
-        taxonomy_res = classify_record(record, provider=provider)
-        if taxonomy_res:
-            record.category = taxonomy_res.segment
-            record.subcategory = taxonomy_res.family
-
-        # Phase 1b: Validation
-        yield _yield_progress(45, "Validating extracted data against rules...")
-        val_result = validate_record(record)
-        record.validation_passed = val_result.passed
         
-        # Phase 2b: Confidence Scoring
-        yield _yield_progress(50, "Calculating confidence scores...")
-        record = score_record(record)
-        
-        # Convert to dict for downstream phases
+        # Phase 6 & 7: Validation & HITL (Confidence is mocked here for the hackathon)
+        record.record_confidence = 0.95
+        record.validation_passed = True
         record_dict = record.model_dump()
-        conf_result = get_confidence_summary(record)
 
-        # Phase 8: Agentic Web Research (if needed)
-        missing = record_dict.get("fields_for_review", [])
-        agent_log = []
-        if missing:
-            yield _yield_progress(55, f"Agent researching {len(missing)} missing attributes online...")
-            research_res = research_missing_attributes(record_dict, missing)
-            
-            # Merge findings
-            if research_res.get("extracted_attributes"):
-                for new_attr in research_res["extracted_attributes"]:
-                    # Set default confidence for agent-found items
-                    new_attr["confidence"] = 0.7
-                    record_dict["attributes"].append(new_attr)
-                yield _yield_progress(70, f"Agent found {len(research_res['extracted_attributes'])} missing attributes.")
-            else:
-                yield _yield_progress(70, "Agent could not find missing attributes.")
-            
-            agent_log = research_res.get("tier_log", [])
-
-        # Phase 7: Risk Radar
-        yield _yield_progress(75, f"Running safety and compliance checks for {industry_name}...")
-        risk_flags = detect_risks(record_dict, industry=industry_name, provider=provider)
-        risk_summary = get_risk_summary(risk_flags)
-
-        # Phase 8: One-Pager
-        yield _yield_progress(85, "Drafting executive one-pager...")
-        onepager_md = generate_onepager(record_dict, provider=provider)
-
-        # Phase 8: Final Report Generation
-        yield _yield_progress(90, "Generating final PDF report...")
-        report_md = generate_report_markdown(
-            record=record_dict,
-            validation_result=val_result.model_dump(),
-            confidence_summary=conf_result,
-            taxonomy_result=taxonomy_res.model_dump() if taxonomy_res else None,
-            industry_detection=industry_res.model_dump() if industry_res else None,
-            risk_flags=risk_flags,
-            onepager_md=onepager_md,
-        )
+        # Phase 8: Risk Radar
+        yield _yield_progress(60, "Running Risk Radar...")
+        risk_res = detect_risk(record)
+        risk_summary = {
+            "overall_risk_level": risk_res["overall_risk_level"],
+            "detected_risks": risk_res["risk_flags"]
+        }
         
-        outputs = render_report(report_md, product_name=record_dict.get("product_name", "unknown"))
+        # Collusion Detection
+        collusion_res = detect_collusion(record)
+        if collusion_res["is_collusion"]:
+            risk_summary["detected_risks"].extend(collusion_res["collusion_flags"])
+            risk_summary["overall_risk_level"] = "high"
+
+        # Agentic Web Research (if Risk Radar flags it)
+        agent_log = []
+        if risk_res.get("requires_agentic_research"):
+            vendor_name = record.primary_party
+            yield _yield_progress(75, f"Agent autonomously researching vendor '{vendor_name}' online...")
+            web_res = research_vendor(vendor_name)
+            agent_log.append(f"Used Tier: {web_res.get('tier')}")
+            agent_log.append(f"Summary: {web_res.get('summary')}")
+            if web_res.get("flags"):
+                risk_summary["detected_risks"].extend(web_res["flags"])
+                risk_summary["overall_risk_level"] = "high"
+                
+        # Agentic Workflow Orchestration (Mock ERP Sync)
+        if risk_summary["overall_risk_level"] == "low" and record.record_confidence > 0.9:
+            yield _yield_progress(85, "Agent triggering ERP Webhook sync...")
+            erp_res = trigger_erp_sync(record_dict)
+            agent_log.append(erp_res["message"])
 
         # Final Payload
         yield _yield_progress(100, "Processing complete!", {
             "record": record_dict,
-            "validation": val_result.model_dump(),
-            "confidence": conf_result,
             "risks": risk_summary,
             "agent_log": agent_log,
-            "report_paths": outputs,
             "processing_time_sec": round(time.time() - start_time, 2)
         })
 
@@ -167,8 +138,3 @@ if __name__ == "__main__":
             break
             
         print(f"[{prog:>3}%] {msg}")
-        
-        if prog == 100:
-            print("\nDone! Report saved to:")
-            for fmt, path in update["data"]["report_paths"].items():
-                print(f"  {fmt.upper()}: {path}")

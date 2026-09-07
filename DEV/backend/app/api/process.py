@@ -25,7 +25,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.database import Document, ProductRecord, Report, AuditLog, get_db, async_session_factory
+from app.models.database import Document, DocumentRecord, Report, AuditLog, get_db, async_session_factory
 from app.api.auth import get_current_user, User
 from app.core.security import (
     compute_content_hash, generate_safe_filename, validate_file_upload,
@@ -256,14 +256,14 @@ async def process_document(
                         else:
                             final_grouped_data = raw_grouped
 
-                        # We save the results as a SINGLE aggregate ProductRecord
+                        # We save the results as a SINGLE aggregate DocumentRecord
                         from report.generate_report import generate_report_markdown
                         from onepager.render_output import render_to_html, render_to_pdf
                         
                         async with async_session_factory() as bg_db:
                             bg_doc = await bg_db.get(Document, doc_id)
                             if bg_doc:
-                                await bg_db.execute(delete(ProductRecord).where(ProductRecord.document_id == bg_doc.id))
+                                await bg_db.execute(delete(DocumentRecord).where(DocumentRecord.document_id == bg_doc.id))
                                 await bg_db.execute(delete(Report).where(Report.document_id == bg_doc.id))
                                 
                             category_record = {
@@ -274,9 +274,9 @@ async def process_document(
                             
                             report_input = {
                                 "record": {
-                                    "product_name": f"Bulk Catalog Data ({len(final_grouped_data)} Categories)",
-                                    "manufacturer": "Multiple Brands",
-                                    "industry": "Multiple",
+                                    "document_title": f"Bulk Catalog Data ({len(final_grouped_data)} Categories)",
+                                    "primary_party": "Multiple Brands",
+                                    "document_type": "Multiple",
                                     "category": "Bulk Upload",
                                     "record_confidence": 0.95,
                                     "validation_passed": True,
@@ -308,10 +308,10 @@ async def process_document(
                             # Include stats from the pipeline for the frontend dashboard
                             enrichment_stats = data.get("stats", {})
                             
-                            pr = ProductRecord(
+                            pr = DocumentRecord(
                                 document_id=doc_id,
-                                product_name=f"Bulk Excel: {category_record['total_items']} items",
-                                industry="Multiple",
+                                document_title=f"Bulk Excel: {category_record['total_items']} items",
+                                document_type="Multiple",
                                 category="Bulk Upload",
                                 record_data={
                                     "categories": final_grouped_data,
@@ -367,15 +367,15 @@ async def process_document(
                         async with async_session_factory() as bg_db:
                             bg_doc = await bg_db.get(Document, doc_id)
                             if bg_doc:
-                                await bg_db.execute(delete(ProductRecord).where(ProductRecord.document_id == bg_doc.id))
+                                await bg_db.execute(delete(DocumentRecord).where(DocumentRecord.document_id == bg_doc.id))
                                 await bg_db.execute(delete(Report).where(Report.document_id == bg_doc.id))
                                 
-                                product_record = ProductRecord(
+                                document_record = DocumentRecord(
                                     document_id=bg_doc.id,
-                                    product_name=record_data.get("product_name", ""),
-                                    manufacturer=record_data.get("manufacturer", ""),
+                                    document_title=record_data.get("document_title", ""),
+                                    primary_party=record_data.get("primary_party", ""),
                                     part_number=record_data.get("part_number", ""),
-                                    industry=record_data.get("industry", ""),
+                                    document_type=record_data.get("document_type", ""),
                                     category=record_data.get("category", ""),
                                     record_data=record_data,
                                     record_confidence=record_data.get("record_confidence", 0.0),
@@ -383,7 +383,7 @@ async def process_document(
                                     risk_level=data.get("risks", {}).get("overall_risk_level", "low"),
                                     content_hash=content_hash,
                                 )
-                                bg_db.add(product_record)
+                                bg_db.add(document_record)
 
                                 report_paths = data.get("report_paths", {})
                                 report = Report(
@@ -401,7 +401,7 @@ async def process_document(
                                     action="process_completed",
                                     resource_type="document",
                                     resource_id=bg_doc.id,
-                                    details=f"product={record_data.get('product_name', '')}",
+                                    details=f"document={record_data.get('document_title', '')}",
                                 ))
                                 await bg_db.commit()
 
@@ -454,14 +454,14 @@ async def verify_record_integrity(
     is intact. If not, it has been tampered with.
     """
     result = await db.execute(
-        select(ProductRecord)
+        select(DocumentRecord)
         .join(Document)
         .where(Document.id == doc_id, Document.owner_id == user.id)
     )
     record = result.scalar_one_or_none()
 
     if record is None:
-        raise HTTPException(status_code=404, detail="Product record not found")
+        raise HTTPException(status_code=404, detail="Document record not found")
 
     # Re-compute hash
     current_hash = compute_content_hash(record.record_data)
@@ -469,7 +469,7 @@ async def verify_record_integrity(
 
     return {
         "document_id": doc_id,
-        "product_name": record.product_name,
+        "document_title": record.document_title,
         "stored_hash": record.content_hash,
         "computed_hash": current_hash,
         "is_intact": is_intact,

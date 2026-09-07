@@ -25,25 +25,27 @@ import {
 const BulkDashboard = dynamic(() => import("./BulkDashboard"), { ssr: false });
 
 interface Attribute {
-  name: string;
+  name?: string;
+  type?: string;
+  entity_type?: string;
   value: string | number;
   unit?: string;
   confidence: number;
   source_text?: string;
 }
 
-interface ProductRecord {
-  product_name: string;
-  manufacturer: string;
+interface DocumentRecord {
+  document_title: string;
+  primary_party: string;
   part_number: string;
-  industry: string;
+  document_type: string;
   category: string;
   record_confidence: number;
   validation_passed: boolean;
   risk_level: string;
   content_hash: string;
   record_data: {
-    attributes: Attribute[];
+    entities: Attribute[];
     categories?: Record<string, any[]>;
     stats?: any;
     excel_path?: string;
@@ -54,7 +56,7 @@ interface ProductRecord {
 
 
 export default function RecordPage({ params }: { params: { id: string } }) {
-  const [record, setRecord] = useState<ProductRecord | null>(null);
+  const [record, setRecord] = useState<DocumentRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
@@ -80,20 +82,20 @@ export default function RecordPage({ params }: { params: { id: string } }) {
         
         const data = await res.json();
         
-        if (data.product_record) {
+        if (data.document_record) {
           // Map backend data to frontend interface
           setRecord({
-            product_name: data.product_record.product_name || "Unknown Product",
-            manufacturer: data.product_record.manufacturer || "Unknown Manufacturer",
-            part_number: data.product_record.part_number || "N/A",
-            industry: data.product_record.industry || "General",
-            category: data.product_record.category || "Uncategorized",
-            record_confidence: data.product_record.record_confidence || 0,
-            validation_passed: data.product_record.validation_passed || false,
-            risk_level: data.product_record.risk_level || "Unknown",
-            content_hash: data.product_record.content_hash || "",
-            record_data: { attributes: [], ...(data.product_record.record_data || {}) },
-            risks: data.product_record.risks || [],
+            document_title: data.document_record.document_title || "Unknown Document",
+            primary_party: data.document_record.primary_party || "Unknown Party",
+            part_number: data.document_record.part_number || "N/A",
+            document_type: data.document_record.document_type || "General",
+            category: data.document_record.category || "Uncategorized",
+            record_confidence: data.document_record.record_confidence || 0,
+            validation_passed: data.document_record.validation_passed || false,
+            risk_level: data.document_record.risk_level || "Unknown",
+            content_hash: data.document_record.content_hash || "",
+            record_data: { entities: [], ...(data.document_record.record_data || {}) },
+            risks: data.document_record.risks_summary?.detected_risks || [],
           });
         }
       } catch (err) {
@@ -115,7 +117,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${record.product_name.replace(/\s+/g, "_")}_report.json`;
+    a.download = `${record.document_title.replace(/\s+/g, "_")}_report.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [record]);
@@ -140,7 +142,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Report_${record.product_name.replace(/\s+/g, "_")}.pdf`;
+      a.download = `Report_${record.document_title.replace(/\s+/g, "_")}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -171,7 +173,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Enriched_${record.product_name.replace(/\s+/g, "_")}.csv`;
+      a.download = `Enriched_${record.document_title.replace(/\s+/g, "_")}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -213,22 +215,19 @@ export default function RecordPage({ params }: { params: { id: string } }) {
           <ArrowLeft size={14} /> Dashboard
         </Link>
         <ChevronRight size={12} />
-        <span className="text-[var(--accent-blue)]">{record.industry}</span>
+        <span className="text-[var(--accent-blue)]">{record.document_type}</span>
         <ChevronRight size={12} />
-        <span className="text-[var(--foreground)]">{record.product_name}</span>
+        <span className="text-[var(--foreground)]">{record.document_title}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[var(--border)] pb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-[var(--foreground)] mb-2">
-            {record.product_name}
+            {record.document_title}
           </h1>
           <p className="text-base text-[var(--secondary)]">
-            {record.manufacturer} • Part:{" "}
-            <span className="font-mono text-gray-300">
-              {record.part_number}
-            </span>
+            {record.primary_party}
           </p>
         </div>
 
@@ -254,6 +253,12 @@ export default function RecordPage({ params }: { params: { id: string } }) {
             className="btn-primary text-xs px-5 py-2.5 flex items-center gap-2 rounded-xl shadow-[0_0_15px_rgba(255,255,255,0.08)]"
           >
             <Download size={14} /> {record.record_data.excel_path ? "Summary PDF" : "Download PDF Report"}
+          </button>
+          <button
+            onClick={() => window.location.href = `/review/${params.id}`}
+            className="bg-[var(--accent-primary)] hover:opacity-90 text-white font-semibold text-xs px-5 py-2.5 flex items-center gap-2 rounded-xl transition-all"
+          >
+            <ShieldCheck size={14} /> Human Review
           </button>
         </div>
       </div>
@@ -304,11 +309,11 @@ export default function RecordPage({ params }: { params: { id: string } }) {
 
             <div className="glass-panel rounded-2xl p-5">
               <p className="text-xs text-[var(--secondary)] uppercase tracking-wider mb-1">
-                Industry
+                Document Type
               </p>
               <p className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
                 <Globe2 size={16} className="text-[var(--accent-blue)]" />
-                {record.industry.split(" ")[0]}
+                {record.document_type.split(" ")[0]}
               </p>
               <p className="text-xs text-[var(--muted)] mt-2 truncate">
                 {record.category}
@@ -317,16 +322,16 @@ export default function RecordPage({ params }: { params: { id: string } }) {
 
             <div className="glass-panel rounded-2xl p-5">
               <p className="text-xs text-[var(--secondary)] uppercase tracking-wider mb-1">
-                Attributes
+                Entities
               </p>
               <p className="text-3xl font-extrabold text-[var(--foreground)]">
-                {record.record_data.attributes.length}
+                {record.record_data.entities?.length || 0}
               </p>
               <p className="text-xs text-[var(--muted)] mt-2">
                 {
-                  record.record_data.attributes.filter(
+                  record.record_data.entities?.filter(
                     (a) => a.confidence >= 0.9
-                  ).length
+                  ).length || 0
                 }{" "}
                 high-confidence
               </p>
@@ -348,7 +353,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                   }`}
                 >
                   <BarChart3 size={14} className="inline mr-2 -mt-0.5" />
-                  Specifications ({record.record_data.attributes.length})
+                  Entities ({record.record_data.entities?.length || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab("risks")}
@@ -375,7 +380,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                       <thead>
                         <tr className="border-b border-white/10">
                           <th className="pb-3 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
-                            Attribute
+                            Entity
                           </th>
                           <th className="pb-3 text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">
                             Value
@@ -386,7 +391,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {record.record_data.attributes.map((attr, idx) => (
+                        {record.record_data.entities?.map((attr, idx) => (
                           <React.Fragment key={idx}>
                             <motion.tr
                               initial={{ opacity: 0, y: 6 }}
@@ -398,7 +403,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                               }
                             >
                               <td className="py-3.5 text-sm font-medium text-gray-200">
-                                {attr.name}
+                                {attr.type || attr.entity_type || attr.name}
                               </td>
                               <td className="py-3.5 text-sm font-mono text-[var(--foreground)]">
                                 {attr.value}{" "}
@@ -466,7 +471,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                     exit={{ opacity: 0, y: -8 }}
                     className="space-y-2"
                   >
-                    {record.risks.map((r, i) => (
+                    {record.risks?.map((r, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, y: 6 }}

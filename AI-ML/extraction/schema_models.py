@@ -1,8 +1,8 @@
 """
-Pydantic models for product data throughout the pipeline.
+Pydantic models for document data throughout the pipeline.
 
 These are the core data shapes. Every module reads or writes using
-these models. The TrustedProductRecord is the central artifact that
+these models. The DocumentRecord is the central artifact that
 all later stages (3-7) consume.
 """
 
@@ -12,13 +12,13 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class ProductAttribute(BaseModel):
-    """A single extracted product attribute with provenance."""
+class ExtractedEntity(BaseModel):
+    """A single extracted document entity with provenance."""
 
-    name: str = Field(description="Attribute name, e.g. 'Voltage Rating'")
-    value: str = Field(description="Extracted value as a string, e.g. '240V'")
+    entity_type: str = Field(description="Entity type, e.g. 'PERSON', 'ORG', 'DATE', 'MONEY', 'LAW'")
+    value: str = Field(description="Extracted value as a string, e.g. 'John Doe', '$5,000'")
     unit: Optional[str] = Field(
-        default=None, description="Unit if applicable, e.g. 'V', 'A', 'mm'"
+        default=None, description="Unit if applicable, e.g. 'USD', 'kg'"
     )
     numeric_value: Optional[float] = Field(
         default=None, description="Parsed numeric value if the attribute is numeric"
@@ -36,52 +36,68 @@ class ProductAttribute(BaseModel):
         le=1.0,
         description="Extraction confidence score between 0 and 1",
     )
+    human_verified: bool = Field(
+        default=False, description="Whether this entity has been verified/edited by a human"
+    )
 
 
-class TrustedProductRecord(BaseModel):
+class DocumentRecord(BaseModel):
     """
-    The central product record produced by Stages 0-2.
+    The central document record produced by Stages 0-2.
 
     All later stages (3-7) read from this record. It holds the extracted
-    attributes, metadata, provenance, and quality scores.
+    entities, metadata, provenance, and quality scores.
     """
 
     # Identity
-    product_name: str = Field(description="Product name or title")
-    manufacturer: Optional[str] = Field(
-        default=None, description="Manufacturer or brand name"
+    document_title: str = Field(description="Document title or inferred name")
+    primary_party: Optional[str] = Field(
+        default=None, description="Primary organization, vendor, or individual"
     )
-    part_number: Optional[str] = Field(
-        default=None, description="Part number, model number, or SKU"
+    secondary_party: Optional[str] = Field(
+        default=None, description="Secondary organization or individual (e.g., client, buyer)"
     )
-    description: Optional[str] = Field(
-        default=None, description="Short product description or summary"
+    document_date: Optional[str] = Field(
+        default=None, description="Primary date of the document"
+    )
+    summary: Optional[str] = Field(
+        default=None, description="Brief document summary or intent"
     )
 
     # Classification
-    industry: Optional[str] = Field(
+    document_type: Optional[str] = Field(
         default=None,
-        description="Detected industry, e.g. 'electrical', 'software', 'food'",
+        description="Detected document type, e.g. 'invoice', 'contract', 'receipt', 'letter'",
     )
     category: Optional[str] = Field(
-        default=None, description="Product category from taxonomy mapping"
+        default=None, description="Document category from taxonomy mapping"
     )
     subcategory: Optional[str] = Field(
-        default=None, description="Product subcategory"
+        default=None, description="Document subcategory"
     )
 
-    # Attributes
-    attributes: list[ProductAttribute] = Field(
+    # Entities
+    entities: list[ExtractedEntity] = Field(
         default_factory=list,
-        description="List of extracted product attributes with provenance",
+        description="List of extracted named entities with provenance",
+    )
+    
+    # Financial/Contract Summaries (Optional depending on doc type)
+    financial_summary: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Extracted financial totals, taxes, or payment terms"
+    )
+    key_dates: dict[str, str] = Field(
+        default_factory=dict,
+        description="Map of key date types to their values (e.g. 'due_date': '2024-01-01')"
     )
 
-    # Quality
+    # Quality & Human-in-the-Loop
     record_confidence: float = Field(
         default=0.0,
         ge=0.0,
         le=1.0,
-        description="Overall record confidence score",
+        description="Overall record confidence score based on entity confidences",
     )
     validation_passed: bool = Field(
         default=False, description="Whether the record passed all validation rules"
@@ -92,7 +108,13 @@ class TrustedProductRecord(BaseModel):
     )
     fields_for_review: list[str] = Field(
         default_factory=list,
-        description="Attribute names flagged for human review (low confidence)",
+        description="Entity types flagged for human review (low confidence or missing)",
+    )
+    human_verified: bool = Field(
+        default=False, description="Whether the entire document record has been verified by a human"
+    )
+    verified_by: Optional[str] = Field(
+        default=None, description="Username or ID of the human reviewer"
     )
 
     # Provenance
@@ -106,44 +128,38 @@ class TrustedProductRecord(BaseModel):
         default=None, description="ISO timestamp of when extraction happened"
     )
 
-    # Dynamic schema extension (set by Stage 2)
-    industry_profile: Optional[str] = Field(
-        default=None, description="Industry profile key used for this record"
-    )
+    # Dynamic schema extension
     dynamic_attributes: dict[str, Any] = Field(
         default_factory=dict,
-        description="Additional industry-specific attributes added by dynamic schema",
+        description="Additional type-specific attributes added by dynamic schema",
     )
 
 
 class ExtractionResult(BaseModel):
     """
-    Raw extraction output from the LLM before validation and scoring.
-
-    This is what instructor returns. It gets converted into a
-    TrustedProductRecord after validation and confidence scoring.
+    Raw extraction output from the LLM/NER pipeline before validation and scoring.
     """
 
-    product_name: str = Field(description="Product name or title")
-    manufacturer: Optional[str] = Field(
-        default=None, description="Manufacturer or brand"
+    document_title: str = Field(description="Document title or inferred name")
+    primary_party: Optional[str] = Field(
+        default=None, description="Primary organization, vendor, or individual"
     )
-    part_number: Optional[str] = Field(
-        default=None, description="Part number or model number"
+    document_date: Optional[str] = Field(
+        default=None, description="Primary date of the document"
     )
-    description: Optional[str] = Field(
-        default=None, description="Brief product description"
+    summary: Optional[str] = Field(
+        default=None, description="Brief document summary"
     )
-    attributes: list[ProductAttribute] = Field(
+    entities: list[ExtractedEntity] = Field(
         default_factory=list,
-        description="All extracted technical attributes",
+        description="All extracted named entities",
     )
 
 
 class ValidationIssue(BaseModel):
-    """A single validation issue found in a product record."""
+    """A single validation issue found in a document record."""
 
-    field: str = Field(description="The field or attribute name with the issue")
+    field: str = Field(description="The field or entity type with the issue")
     rule: str = Field(description="The validation rule that was violated")
     message: str = Field(description="Human-readable description of the issue")
     severity: str = Field(
@@ -153,7 +169,7 @@ class ValidationIssue(BaseModel):
 
 
 class ValidationResult(BaseModel):
-    """Result of running validation rules against a product record."""
+    """Result of running validation rules against a document record."""
 
     passed: bool = Field(description="Whether all critical rules passed")
     issues: list[ValidationIssue] = Field(
@@ -170,11 +186,11 @@ class ValidationResult(BaseModel):
 if __name__ == "__main__":
     import json
 
-    print("=== ProductAttribute Schema ===")
-    print(json.dumps(ProductAttribute.model_json_schema(), indent=2))
+    print("=== ExtractedEntity Schema ===")
+    print(json.dumps(ExtractedEntity.model_json_schema(), indent=2))
     print()
-    print("=== TrustedProductRecord Schema ===")
-    print(json.dumps(TrustedProductRecord.model_json_schema(), indent=2))
+    print("=== DocumentRecord Schema ===")
+    print(json.dumps(DocumentRecord.model_json_schema(), indent=2))
     print()
     print("=== ExtractionResult Schema ===")
     print(json.dumps(ExtractionResult.model_json_schema(), indent=2))

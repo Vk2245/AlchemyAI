@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 interface RecordType {
   id: string;
   document_id: number;
-  product_name: string | null;
+  document_title: string | null;
   manufacturer: string | null;
   industry: string | null;
   risk_level: string | null;
@@ -92,7 +92,7 @@ export default function DashboardPage() {
             Dashboard
           </h1>
           <p className="text-xs text-[var(--secondary)] mt-1">
-            Your analyzed product catalog history.
+            Your analyzed document history.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ export default function DashboardPage() {
           />
           <input
             type="text"
-            placeholder="Search by product name, manufacturer, or industry..."
+            placeholder="Search by document title or type..."
             className="w-full pl-10 pr-4 py-3 bg-black/[0.03] dark:bg-white/[0.03] border border-[var(--border)] rounded-xl text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--accent-blue)] transition-colors"
           />
         </div>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
           <div className="text-center py-10 text-[var(--muted)]">Loading records...</div>
         ) : !Array.isArray(records) || records.length === 0 ? (
           <div className="text-center py-10 text-[var(--muted)] glass-panel rounded-2xl">
-            No product scans found. Upload a document to get started.
+            No document scans found. Upload a document to get started.
           </div>
         ) : (
           records.map((rec, i) => (
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold text-[var(--foreground)] mb-1 truncate group-hover:text-[var(--accent-blue)] transition-colors">
-                      {rec.product_name || "Unknown Product"}
+                      {rec.document_title || "Unknown Document"}
                     </h3>
                     <p className="text-xs text-[var(--muted)] mt-0.5 truncate">
                       {rec.manufacturer || "Unknown Mfr"} - {rec.industry || "Unknown Industry"} - {rec.uploaded_at ? new Date(rec.uploaded_at).toLocaleDateString() : ""}
@@ -220,7 +220,7 @@ export default function DashboardPage() {
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    if (window.confirm(`Are you sure you want to delete "${rec.product_name || 'this scan'}"?`)) {
+                    if (window.confirm(`Are you sure you want to delete "${rec.document_title || 'this document'}"?`)) {
                       handleDelete(rec.document_id);
                     }
                   }}

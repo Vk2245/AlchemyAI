@@ -13,6 +13,7 @@
 # 2. Irrelevant / Old Project Folders
 Testing/
 DEV/skills/
+bug_fixes/
 
 # 3. Scratch & Cleanup Scripts
 cleanup.py
@@ -20,6 +21,8 @@ scratch_chat_test.py
 test_vllm.py
 update_chat.js
 catalogx.db
+fix_*.py
+patch_*.py
 
 # 4. Node / Next.js
 node_modules/

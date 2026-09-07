@@ -1,33 +1,15 @@
-# Environment
-.env
-
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.egg-info/
-dist/
-build/
-*.egg
+*.so
 
-# Virtual environment
+# Environment
+.env
 venv/
-.venv/
 env/
-
-# Data and artifacts
-data/
-*.pdf
-!tests/sample_pdfs/**/*.pdf
-
-# Vector DB
-chroma_db/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+ENV/
+.venv/
 
 # OS
 .DS_Store
@@ -36,10 +18,14 @@ Thumbs.db
 # Logs
 *.log
 
+# -----------------------------------------------------
+# Ignore text files and markdown files except specific ones
+# -----------------------------------------------------
+*.txt
+!requirements.txt
 
-Building Product Intelligence AI Module.md
-AI_ML_Build_Prompt.md
-Training Roadmap.md
-implementation_plan.md
-Product_Intelligence_Roadmap_Refined (1).md
+*.md
+!README.md
 
+# Ignore the bug fixes folder (testing/patching/temp files)
+bug fixes/
