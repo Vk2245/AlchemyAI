@@ -27,18 +27,18 @@ export default function BranchedPipeline() {
     { icon: ShieldCheck, label: "Cryptographic Seal", color: "#14b8a6" },
   ];
 
-  const pdfBranch = [
-    { icon: FileText, label: "Document Ingest", color: "#3b82f6" },
-    { icon: ScanLine, label: "OCR Fallback", color: "#8b5cf6" },
-    { icon: Globe2, label: "Classification", color: "#10b981" },
-    { icon: Layers, label: "Local NER", color: "#f59e0b" },
+  const cloudBranch = [
+    { icon: Globe2, label: "Cloud Route", color: "#3b82f6" },
+    { icon: ScanLine, label: "OCR.space API", color: "#10b981" },
+    { icon: Brain, label: "Vision Audits", color: "#8b5cf6" },
+    { icon: FileOutput, label: "Cloud Extraction", color: "#f59e0b" },
   ];
 
-  const excelBranch = [
-    { icon: TableProperties, label: "Bulk Excel/CSV", color: "#22c55e" },
-    { icon: Binary, label: "Data Structuring", color: "#6366f1" },
-    { icon: Database, label: "Row Categorization", color: "#14b8a6" },
-    { icon: Network, label: "LLM Chunking", color: "#eab308" },
+  const localBranch = [
+    { icon: Database, label: "Local Route", color: "#22c55e" },
+    { icon: Binary, label: "Tesseract OCR", color: "#6366f1" },
+    { icon: Layers, label: "Local NER (spaCy)", color: "#14b8a6" },
+    { icon: Network, label: "Private vLLM", color: "#eab308" },
   ];
 
   const StageNode = ({ stage, index, delayOffset = 0 }: { stage: any, index: number, delayOffset?: number }) => (
@@ -143,22 +143,22 @@ export default function BranchedPipeline() {
 
         {/* Parallel Branches */}
         <div className="flex flex-col gap-6 md:gap-10 relative mt-2 md:mt-0 ml-4 md:ml-0">
-          {/* PDF Branch */}
+          {/* Cloud Branch */}
           <div className="flex items-center bg-blue-500/5 dark:bg-blue-500/10 rounded-xl p-2 md:p-3 border border-blue-500/10 dark:border-blue-500/20 backdrop-blur-sm">
-            {pdfBranch.map((stage, i) => (
+            {cloudBranch.map((stage, i) => (
               <React.Fragment key={stage.label}>
                 <StageNode stage={stage} index={i} delayOffset={0.4} />
-                {i < pdfBranch.length - 1 && <HorizontalLine color={stage.color} delay={0.4 + i * 0.1} />}
+                {i < cloudBranch.length - 1 && <HorizontalLine color={stage.color} delay={0.4 + i * 0.1} />}
               </React.Fragment>
             ))}
           </div>
 
-          {/* Excel Branch */}
+          {/* Local Branch */}
           <div className="flex items-center bg-green-500/5 dark:bg-green-500/10 rounded-xl p-2 md:p-3 border border-green-500/10 dark:border-green-500/20 backdrop-blur-sm">
-            {excelBranch.map((stage, i) => (
+            {localBranch.map((stage, i) => (
               <React.Fragment key={stage.label}>
                 <StageNode stage={stage} index={i} delayOffset={0.4} />
-                {i < excelBranch.length - 1 && <HorizontalLine color={stage.color} delay={0.4 + i * 0.1} />}
+                {i < localBranch.length - 1 && <HorizontalLine color={stage.color} delay={0.4 + i * 0.1} />}
               </React.Fragment>
             ))}
           </div>

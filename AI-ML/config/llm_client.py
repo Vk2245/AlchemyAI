@@ -64,18 +64,16 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
     # Active Fallback Configuration (litellm will automatically try these if the primary fails)
     fallbacks = []
     
-    # Do not use fallbacks for Gemini, because Gemini uses safety_settings which crash other providers
-    # and local vLLM cannot handle the context length anyway.
+    # Gemini provider: fallback to secondary Gemini key only (safety_settings crash other providers)
     if provider == "gemini":
         if FALLBACK_GEMINI_API_KEY:
-            # If the primary Gemini key hits a rate limit, fallback to the secondary Gemini key
             fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": FALLBACK_GEMINI_API_KEY})
     else:
+        # For non-gemini providers, use Gemini as fallback (Groq -> Gemini)
         if provider != "groq" and GROQ_API_KEY:
             fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
-        # REMOVED GEMINI FALLBACK: We want instructor to natively retry 429 rate limits on Groq
-        if provider != "vllm" and VLLM_BASE_URL:
-            fallbacks.append({"model": PROVIDER_MODELS["vllm"], "api_base": VLLM_BASE_URL, "api_key": "dummy-key"})
+        if provider == "groq" and GEMINI_API_KEY:
+            fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
         
     if fallbacks:
         kwargs["fallbacks"] = fallbacks
@@ -169,8 +167,51 @@ def get_structured_output(
 
     Uses instructor to auto-retry until the output matches the schema.
     This is the primary function for all structured extraction tasks.
+    
+    If the primary provider fails, automatically falls back to Gemini.
+    litellm's built-in fallbacks do NOT work through instructor's wrapper,
+    so we handle fallback manually here.
     """
-    if provider == "vllm":
+    # Try the primary provider first, then fallback to gemini if it fails
+    providers_to_try = [provider]
+    if provider != "gemini" and GEMINI_API_KEY:
+        providers_to_try.append("gemini")
+
+    last_error = None
+    for current_provider in providers_to_try:
+        try:
+            result = _structured_output_single(
+                prompt=prompt,
+                response_model=response_model,
+                system_prompt=system_prompt,
+                provider=current_provider,
+                temperature=temperature,
+                max_retries=max_retries,
+                max_tokens=max_tokens,
+            )
+            return result
+        except Exception as e:
+            print(f"  [Structured Output] Provider '{current_provider}' failed: {e}")
+            last_error = e
+            if current_provider != providers_to_try[-1]:
+                print(f"  [Structured Output] Falling back to next provider...")
+
+    # If all providers failed, raise the last error
+    raise last_error
+
+
+def _structured_output_single(
+    prompt: str,
+    response_model: type[T],
+    system_prompt: str = "",
+    provider: str = DEFAULT_PROVIDER,
+    temperature: float = 0.1,
+    max_retries: int = 3,
+    max_tokens: int = 8192,
+) -> T:
+    """Internal: attempt structured output with a single provider."""
+
+    if provider in ("vllm", "groq"):
         json_instruction = (
             "You MUST return your response as a valid JSON object. "
             "Do NOT wrap it in markdown blocks. Do NOT include any explanations before or after the JSON."
@@ -185,13 +226,29 @@ def get_structured_output(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    model = _get_model_string(provider)
-    kwargs = _build_kwargs(provider)
+    # Use the structured JSON model if provider is groq
+    model_key = "groq_extraction" if provider == "groq" else provider
+    model = _get_model_string(model_key)
+    
+    # Build kwargs WITHOUT fallbacks — we handle fallback manually above
+    kwargs: dict[str, Any] = {}
+    if provider == "vllm":
+        kwargs["api_base"] = VLLM_BASE_URL
+        kwargs["api_key"] = "dummy-key"
+    elif provider == "groq":
+        kwargs["api_key"] = GROQ_API_KEY
+    elif provider == "gemini":
+        kwargs["api_key"] = GEMINI_API_KEY
+        kwargs["safety_settings"] = [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+        ]
 
     # Create an instructor-patched client via litellm
-    if provider == "vllm":
-        # Use Mode.JSON which handles markdown stripping natively, 
-        # instead of JSON_SCHEMA which strictly expects raw valid JSON string.
+    # Use Mode.JSON for vLLM and Groq to avoid tool_use_failed errors
+    if provider in ("vllm", "groq"):
         client = instructor.from_litellm(litellm.completion, mode=instructor.Mode.JSON)
     else:
         client = instructor.from_litellm(litellm.completion)
@@ -200,7 +257,7 @@ def get_structured_output(
     if provider == "vllm":
         total_prompt_chars = sum(len(m["content"]) for m in messages)
         estimated_input_tokens = total_prompt_chars // 3
-        model_context_limit = 32768  # Assume vLLM is running with --max-model-len 32768
+        model_context_limit = 32768
         safe_max_tokens = min(max_tokens, model_context_limit - estimated_input_tokens - 100)
         safe_max_tokens = max(safe_max_tokens, 256)
     else:

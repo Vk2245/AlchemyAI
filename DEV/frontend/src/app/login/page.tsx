@@ -39,7 +39,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const API = "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError("");
     try {
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const API = "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/auth/demo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

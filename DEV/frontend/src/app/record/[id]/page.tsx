@@ -70,18 +70,18 @@ export default function RecordPage({ params }: { params: { id: string } }) {
           window.location.href = "/login";
           return;
         }
-        
-        const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+        const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
         const res = await fetch(`${API}/api/records/${params.id}`, {
           headers: {
             "Authorization": `Bearer ${token}`
           }
         });
-        
+
         if (!res.ok) throw new Error("Failed to fetch record");
-        
+
         const data = await res.json();
-        
+
         if (data.document_record) {
           // Map backend data to frontend interface
           setRecord({
@@ -104,7 +104,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
         setLoading(false);
       }
     }
-    
+
     fetchRecord();
   }, [params.id]);
 
@@ -128,16 +128,16 @@ export default function RecordPage({ params }: { params: { id: string } }) {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6104";
       const timestamp = new Date().getTime();
       const res = await fetch(`${API}/api/records/${params.id}/pdf?t=${timestamp}`, {
         headers: { "Authorization": `Bearer ${token}` },
         cache: "no-store"
       });
-      
+
       if (!res.ok) throw new Error("Failed to download PDF");
-      
+
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -159,16 +159,16 @@ export default function RecordPage({ params }: { params: { id: string } }) {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:6104";
       const timestamp = new Date().getTime();
       const res = await fetch(`${API}/api/records/${params.id}/csv?t=${timestamp}`, {
         headers: { "Authorization": `Bearer ${token}` },
         cache: "no-store"
       });
-      
+
       if (!res.ok) throw new Error("Failed to download CSV");
-      
+
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -291,13 +291,12 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                 Risk Level
               </p>
               <p
-                className={`text-3xl font-extrabold ${
-                  record.risk_level === "Low"
+                className={`text-3xl font-extrabold ${record.risk_level === "Low"
                     ? "text-emerald-400"
                     : record.risk_level === "Medium"
-                    ? "text-amber-400"
-                    : "text-red-400"
-                }`}
+                      ? "text-amber-400"
+                      : "text-red-400"
+                  }`}
               >
                 {record.risk_level}
               </p>
@@ -346,22 +345,20 @@ export default function RecordPage({ params }: { params: { id: string } }) {
               <div className="flex items-center gap-1 mb-6 bg-white/[0.02] rounded-xl p-1 border border-[var(--border)]">
                 <button
                   onClick={() => setActiveTab("attributes")}
-                  className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
-                    activeTab === "attributes"
+                  className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${activeTab === "attributes"
                       ? "bg-black/10 dark:bg-white/10 text-[var(--foreground)]"
                       : "text-[var(--muted)] hover:text-[var(--secondary)]"
-                  }`}
+                    }`}
                 >
                   <BarChart3 size={14} className="inline mr-2 -mt-0.5" />
                   Entities ({record.record_data.entities?.length || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab("risks")}
-                  className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${
-                    activeTab === "risks"
+                  className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${activeTab === "risks"
                       ? "bg-black/10 dark:bg-white/10 text-[var(--foreground)]"
                       : "text-[var(--muted)] hover:text-[var(--secondary)]"
-                  }`}
+                    }`}
                 >
                   <ShieldAlert size={14} className="inline mr-2 -mt-0.5" />
                   Safety Checks ({record.risks.length})
@@ -417,13 +414,12 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                                 <div className="flex items-center justify-end gap-2.5">
                                   <div className="w-14 h-1.5 bg-white/10 rounded-full overflow-hidden">
                                     <div
-                                      className={`h-full rounded-full ${
-                                        attr.confidence >= 0.9
+                                      className={`h-full rounded-full ${attr.confidence >= 0.9
                                           ? "bg-emerald-400"
                                           : attr.confidence >= 0.75
-                                          ? "bg-amber-400"
-                                          : "bg-red-400"
-                                      }`}
+                                            ? "bg-amber-400"
+                                            : "bg-red-400"
+                                        }`}
                                       style={{
                                         width: `${attr.confidence * 100}%`,
                                       }}
@@ -481,11 +477,10 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                       >
                         <span className="text-sm text-gray-300">{r.rule}</span>
                         <span
-                          className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                            r.status === "pass"
+                          className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${r.status === "pass"
                               ? "text-emerald-400"
                               : "text-red-400"
-                          }`}
+                            }`}
                         >
                           {r.status === "pass" ? (
                             <CheckCircle2 size={14} />

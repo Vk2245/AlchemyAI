@@ -77,8 +77,8 @@ export default function UploadZone({
 
       const formData = new FormData();
       formData.append("file", file);
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      
+      const API = "http://127.0.0.1:6104";
+
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
@@ -95,7 +95,7 @@ export default function UploadZone({
       if (!res.ok) throw new Error(`Upload failed (${res.status})`);
       const data = await res.json();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_").replace(/\.pdf$/i, "");
-      router.push(`/process/${safeName}-${data.document_id}`);
+      router.push(`/process/${safeName}-${data.document_id}?mode=${executionMode}`);
       if (onUploadEnd) onUploadEnd();
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -111,11 +111,10 @@ export default function UploadZone({
   return (
     <div className="w-full h-full max-w-xl mx-auto relative z-10 flex flex-col">
       <motion.div
-        className={`relative overflow-hidden flex-1 flex flex-col glass-panel-strong rounded-3xl transition-all duration-500 ${
-          isDragging
+        className={`relative overflow-hidden flex-1 flex flex-col glass-panel-strong rounded-3xl transition-all duration-500 ${isDragging
             ? "border-blue-500/40 shadow-[0_0_60px_rgba(59,130,246,0.12)]"
             : "hover:border-black/10 dark:hover:border-white/10"
-        }`}
+          }`}
         animate={{ scale: isDragging ? 0.98 : 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onDragOver={handleDragOver}
@@ -142,11 +141,10 @@ export default function UploadZone({
                 className="flex flex-col items-center"
               >
                 <div
-                  className={`p-4 rounded-2xl mb-5 transition-colors duration-300 ${
-                    isDragging
+                  className={`p-4 rounded-2xl mb-5 transition-colors duration-300 ${isDragging
                       ? "bg-blue-500/10 text-blue-400"
                       : "bg-black/5 dark:bg-white/5 text-[var(--muted)]"
-                  }`}
+                    }`}
                 >
                   <UploadCloud size={36} strokeWidth={1.2} />
                 </div>

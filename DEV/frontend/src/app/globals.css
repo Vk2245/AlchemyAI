@@ -59,6 +59,15 @@
     overflow-x: hidden;
   }
 
+  /* Hide scrollbar globally but keep scrolling functionality */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
   ::selection {
     background: rgba(59, 130, 246, 0.3);
     color: white;

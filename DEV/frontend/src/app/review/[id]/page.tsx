@@ -23,15 +23,15 @@ export default function ReviewPage() {
           return;
         }
 
-        const res = await fetch(`http://localhost:8080/api/records/${id}`, {
+        const res = await fetch(`http://127.0.0.1:6104/api/records/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!res.ok) throw new Error("Failed to load record");
-        
+
         const json = await res.json();
         setData(json);
-        
+
         // Extract entities for editing
         if (json.document_record?.record_data?.entities) {
           setEntities(json.document_record.record_data.entities);
@@ -51,7 +51,7 @@ export default function ReviewPage() {
     newEntities[index].value = newValue;
     // When a human edits, we consider it verified
     newEntities[index].human_verified = true;
-    newEntities[index].confidence = 1.0; 
+    newEntities[index].confidence = 1.0;
     setEntities(newEntities);
   };
 
@@ -59,7 +59,7 @@ export default function ReviewPage() {
     setSaving(true);
     try {
       const token = localStorage.getItem("token");
-      
+
       const payload = {
         record_data: {
           ...data.document_record.record_data,
@@ -67,17 +67,17 @@ export default function ReviewPage() {
         }
       };
 
-      const res = await fetch(`http://localhost:8080/api/review/${id}/verify`, {
+      const res = await fetch(`http://127.0.0.1:6104/api/review/${id}/verify`, {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error("Failed to save verification");
-      
+
       // Navigate back to record view
       router.push(`/record/${id}`);
     } catch (err: any) {
@@ -100,11 +100,11 @@ export default function ReviewPage() {
   return (
     <div className="min-h-screen flex flex-col items-center pt-24 pb-12 px-6">
       <div className="w-full max-w-5xl space-y-6">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between glass-panel p-6 rounded-2xl border border-[var(--border)]">
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => router.back()}
               className="p-2 hover:bg-[var(--border)] rounded-full transition-colors"
             >
@@ -117,8 +117,8 @@ export default function ReviewPage() {
               </p>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleSave}
             disabled={saving}
             className="flex items-center gap-2 bg-[var(--accent-primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-full transition-all font-medium disabled:opacity-50"
@@ -150,7 +150,7 @@ export default function ReviewPage() {
             <tbody>
               {entities.map((ent, idx) => {
                 const isLowConfidence = ent.confidence < 0.85 && !ent.human_verified;
-                
+
                 return (
                   <tr key={idx} className="border-b border-[var(--border)] last:border-0 hover:bg-white/5 transition-colors">
                     <td className="p-4">
@@ -159,15 +159,14 @@ export default function ReviewPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={ent.value}
                         onChange={(e) => handleEntityChange(idx, e.target.value)}
-                        className={`w-full bg-transparent border-b outline-none px-2 py-1 transition-colors ${
-                          isLowConfidence 
-                            ? "border-amber-500/50 text-amber-100" 
+                        className={`w-full bg-transparent border-b outline-none px-2 py-1 transition-colors ${isLowConfidence
+                            ? "border-amber-500/50 text-amber-100"
                             : "border-transparent focus:border-[var(--accent-primary)]"
-                        }`}
+                          }`}
                       />
                     </td>
                     <td className="p-4 flex items-center gap-2">

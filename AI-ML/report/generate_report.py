@@ -43,15 +43,17 @@ def generate_report_markdown(
     lines.append(f"**Source:** {record.get('source_file', 'N/A')}")
     lines.append("")
 
-    # --- Section 1: Product Overview ---
-    lines.append("## 1. Product Overview")
+    # --- Section 1: Document Overview ---
+    lines.append("## 1. Document Overview")
     lines.append("")
     lines.append(f"| Field | Value |")
     lines.append(f"|---|---|")
-    lines.append(f"| **Product Name** | {record.get('product_name', 'N/A')} |")
-    lines.append(f"| **Manufacturer** | {record.get('manufacturer', 'N/A')} |")
-    lines.append(f"| **Part Number** | {record.get('part_number', 'N/A')} |")
-    lines.append(f"| **Description** | {record.get('description', 'N/A')} |")
+    lines.append(f"| **Document Title** | {record.get('document_title', 'N/A')} |")
+    lines.append(f"| **Document Type** | {record.get('document_type', 'N/A')} |")
+    lines.append(f"| **Primary Party** | {record.get('primary_party', 'N/A')} |")
+    lines.append(f"| **Secondary Party** | {record.get('secondary_party', 'N/A')} |")
+    lines.append(f"| **Document Date** | {record.get('document_date', 'N/A')} |")
+    lines.append(f"| **Summary** | {record.get('summary', 'N/A')} |")
     lines.append("")
 
     # --- Section 2: Industry Detection ---
@@ -70,23 +72,26 @@ def generate_report_markdown(
         lines.append("_Industry detection was not run._")
     lines.append("")
 
-    # --- Section 3: Extracted Attributes ---
-    lines.append("## 3. Extracted Attributes")
+    # --- Section 3: Extracted Entities ---
+    lines.append("## 3. Extracted Entities")
     lines.append("")
-    attrs = record.get("attributes", [])
+    # Support both 'entities' (from extraction schema) and 'attributes' (legacy)
+    attrs = record.get("entities", record.get("attributes", []))
     if attrs:
-        lines.append(f"| Attribute | Value | Unit | Confidence | Source |")
-        lines.append(f"|---|---|---|---|---|")
+        lines.append(f"| Entity Type | Extracted Value | Confidence | Source Snippet |")
+        lines.append(f"|---|---|---|---|")
         for attr in attrs:
-            name = attr.get("name", "")
+            # Support both schema formats
+            name = attr.get("entity_type", attr.get("name", ""))
             value = attr.get("value", "")
-            unit = attr.get("unit", "") or ""
             conf = attr.get("confidence", 0.0)
-            source = (attr.get("source_text", "") or "")[:50]
+            source = (attr.get("source_text", "") or "")[:80].replace("\n", " ")
+            if len(source) == 80:
+                source += "..."
             conf_str = f"{conf:.0%}"
-            lines.append(f"| {name} | {value} | {unit} | {conf_str} | {source} |")
+            lines.append(f"| **{name}** | {value} | {conf_str} | _{source}_ |")
     else:
-        lines.append("_No attributes extracted._")
+        lines.append("_No entities extracted._")
     lines.append("")
 
     # --- Section 4: Taxonomy ---

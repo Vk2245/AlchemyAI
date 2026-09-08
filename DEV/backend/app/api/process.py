@@ -117,6 +117,7 @@ async def upload_document(
 async def process_document(
     doc_id: int,
     request: Request,
+    mode: str = "online",
     user: User = Depends(get_current_user),
 ):
     """
@@ -194,7 +195,8 @@ async def process_document(
                         log("IMPORTING PDF PIPELINE")
                         from pipeline.run import run_pipeline
                         log("INITIALIZING PDF GENERATOR")
-                        gen = run_pipeline(pdf_path, provider=DEFAULT_PROVIDER)
+                        provider_to_use = "groq" if mode == "online" else DEFAULT_PROVIDER
+                        gen = run_pipeline(pdf_path, provider=provider_to_use, execution_mode=mode)
                     
                     log("STARTING GENERATOR LOOP")
                     for update in gen:
@@ -385,13 +387,34 @@ async def process_document(
                                 )
                                 bg_db.add(document_record)
 
-                                report_paths = data.get("report_paths", {})
-                                report = Report(
-                                    document_id=bg_doc.id,
-                                    report_html_path=report_paths.get("html", ""),
-                                    report_pdf_path=report_paths.get("pdf", ""),
-                                )
-                                bg_db.add(report)
+                                try:
+                                    from report.generate_report import generate_report_markdown
+                                    from onepager.render_output import render_to_html, render_to_pdf
+                                    
+                                    report_md = generate_report_markdown(
+                                        record=record_data,
+                                        risk_flags=data.get("risks", {}).get("detected_risks", [])
+                                    )
+                                    html_content = render_to_html(report_md, title=f"Intelligence Report: {record_data.get('document_title', 'Unknown')}")
+                                    
+                                    report_id = f"PDF_{bg_doc.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                                    report_pdf_path = REPORTS_DIR / f"report_{report_id}.pdf"
+                                    html_path = REPORTS_DIR / f"report_{report_id}.html"
+                                    
+                                    render_to_pdf(html_content, str(report_pdf_path))
+                                    with open(html_path, "w", encoding="utf-8") as f:
+                                        f.write(html_content)
+                                    
+                                    report = Report(
+                                        document_id=bg_doc.id,
+                                        report_html_path=str(html_path),
+                                        report_pdf_path=str(report_pdf_path),
+                                    )
+                                    bg_db.add(report)
+                                    report_paths = {"html": str(html_path), "pdf": str(report_pdf_path)}
+                                except Exception as e:
+                                    logger.error(f"Failed to generate PDF report: {e}")
+                                    report_paths = {}
 
                                 bg_doc.status = "completed"
                                 bg_doc.processed_at = datetime.now(timezone.utc)

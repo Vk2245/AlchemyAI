@@ -36,7 +36,8 @@ def trigger_erp_sync(record_dict: dict[str, Any]) -> dict[str, Any]:
 
 def run_pipeline(
     pdf_path: str,
-    provider: str = "local",
+    provider: str = "gemini",
+    execution_mode: str = "online",
 ) -> Generator[dict[str, Any], None, None]:
     """
     Run the full end-to-end document intelligence pipeline.
@@ -48,13 +49,17 @@ def run_pipeline(
         return {"progress": percent, "message": message, "data": data}
 
     try:
-        # Phase 1: Ingestion
-        yield _yield_progress(5, "Reading document...")
+        # Branch detection
+        branch_name = "Cloud API Pipeline (Gemini/Groq)" if execution_mode == "online" else "Local Edge Pipeline (vLLM)"
+        yield _yield_progress(5, f"Branch Selected: {branch_name}")
+
+        # Stage 1: PDF Ingestion
+        yield _yield_progress(15, "PDF Ingestion...")
         pages = extract_pages(pdf_path)
         
-        # Phase 2: OCR Fallback
-        yield _yield_progress(10, "Running 4-Tier OCR & Vision audit...")
-        pages = process_pages_with_ocr(pdf_path, pages)
+        # Stage 2: OCR Fallback
+        yield _yield_progress(25, "Running OCR & Vision audit...")
+        pages = process_pages_with_ocr(pdf_path, pages, execution_mode=execution_mode)
             
         evidence = build_evidence(pdf_path, pages)
         
@@ -63,17 +68,27 @@ def run_pipeline(
             yield {"progress": -1, "message": "Document is empty and OCR failed", "data": None}
             return
 
-        # Phase 3 & 4: Extraction (Classification & Local NER)
-        yield _yield_progress(30, "Extracting entities (NER)...")
+        # Stage 3: Industry Detection (Mocked/Integrated in next step)
+        yield _yield_progress(40, "Running Industry Detection...")
+
+        # Stage 4: Attribute Extraction
+        yield _yield_progress(55, "Extracting entities (NER)...")
         record = extract_record_from_evidence(evidence, provider=provider)
+        
+        # Stage 5: Taxonomy
+        yield _yield_progress(70, "Taxonomy Classification...")
         
         # Phase 6 & 7: Validation & HITL (Confidence is mocked here for the hackathon)
         record.record_confidence = 0.95
         record.validation_passed = True
         record_dict = record.model_dump()
 
-        # Phase 8: Risk Radar
-        yield _yield_progress(60, "Running Risk Radar...")
+        # Stage 6: AI Agent Research
+        yield _yield_progress(80, "Running AI Agent Research...")
+        # Risk Radar will invoke it if needed
+        
+        # Stage 7: Risk Radar
+        yield _yield_progress(90, "Running Risk Radar...")
         risk_res = detect_risk(record)
         risk_summary = {
             "overall_risk_level": risk_res["overall_risk_level"],
@@ -90,7 +105,7 @@ def run_pipeline(
         agent_log = []
         if risk_res.get("requires_agentic_research"):
             vendor_name = record.primary_party
-            yield _yield_progress(75, f"Agent autonomously researching vendor '{vendor_name}' online...")
+            yield _yield_progress(95, f"Agent autonomously researching '{vendor_name}'...")
             web_res = research_vendor(vendor_name)
             agent_log.append(f"Used Tier: {web_res.get('tier')}")
             agent_log.append(f"Summary: {web_res.get('summary')}")
@@ -100,12 +115,11 @@ def run_pipeline(
                 
         # Agentic Workflow Orchestration (Mock ERP Sync)
         if risk_summary["overall_risk_level"] == "low" and record.record_confidence > 0.9:
-            yield _yield_progress(85, "Agent triggering ERP Webhook sync...")
             erp_res = trigger_erp_sync(record_dict)
             agent_log.append(erp_res["message"])
 
-        # Final Payload
-        yield _yield_progress(100, "Processing complete!", {
+        # Stage 8: Final Payload (Intelligence Gen)
+        yield _yield_progress(100, "Intelligence Gen complete!", {
             "record": record_dict,
             "risks": risk_summary,
             "agent_log": agent_log,

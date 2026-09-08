@@ -73,8 +73,8 @@ export default function BulkExcelUpload({
       const formData = new FormData();
       formData.append("file", file);
 
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      
+      const API = "http://127.0.0.1:6104";
+
       const executionMode = localStorage.getItem("executionMode") || "online";
       const res = await fetch(`${API}/api/upload`, {
         method: "POST",
@@ -88,12 +88,12 @@ export default function BulkExcelUpload({
 
       if (!res.ok) throw new Error(`Upload failed (${res.status})`);
       const data = await res.json();
-      
+
       // Clean up the name for the URL slug
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_").replace(/\.(xlsx|csv)$/i, "");
       router.push(`/process/${safeName}-${data.document_id}?type=excel`);
       if (onUploadEnd) onUploadEnd();
-      
+
     } catch (err: any) {
       if (err.name === "AbortError") {
         setError("Upload cancelled.");
@@ -108,11 +108,10 @@ export default function BulkExcelUpload({
   return (
     <div className="w-full h-full max-w-xl mx-auto relative z-10 flex flex-col">
       <motion.div
-        className={`relative overflow-hidden flex-1 flex flex-col glass-panel-strong rounded-3xl transition-all duration-500 ${
-          isDragging
+        className={`relative overflow-hidden flex-1 flex flex-col glass-panel-strong rounded-3xl transition-all duration-500 ${isDragging
             ? "border-emerald-500/40 shadow-[0_0_60px_rgba(16,185,129,0.12)]"
             : "border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10"
-        }`}
+          }`}
         animate={{ scale: isDragging ? 0.98 : 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onDragOver={handleDragOver}
@@ -139,11 +138,10 @@ export default function BulkExcelUpload({
                 className="flex flex-col items-center"
               >
                 <div
-                  className={`p-4 rounded-2xl mb-5 transition-colors duration-300 ${
-                    isDragging
+                  className={`p-4 rounded-2xl mb-5 transition-colors duration-300 ${isDragging
                       ? "bg-emerald-500/10 text-emerald-400"
                       : "bg-black/5 dark:bg-white/5 text-[var(--muted)]"
-                  }`}
+                    }`}
                 >
                   <FileSpreadsheet size={36} strokeWidth={1.2} />
                 </div>

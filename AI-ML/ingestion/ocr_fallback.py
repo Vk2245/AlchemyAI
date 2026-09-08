@@ -39,13 +39,13 @@ class OCRFallbackChain:
     def __init__(self):
         self.ocr_space_key = os.getenv("OCR_SPACE_API_KEY", "")
 
-    def process_image(self, image_bytes: bytes, lang: str = "eng") -> dict[str, Any]:
+    def process_image(self, image_bytes: bytes, lang: str = "eng", execution_mode: str = "online") -> dict[str, Any]:
         """
         Runs the image through the fallback chain.
         Returns a dict with 'text' and 'fraud_flags' (if any).
         """
         # Tier 1: Local Tesseract
-        if HAS_TESSERACT:
+        if HAS_TESSERACT and execution_mode == "local":
             try:
                 print("  [OCR Tier 1] Attempting pytesseract...")
                 image = Image.open(io.BytesIO(image_bytes))
@@ -110,34 +110,17 @@ class OCRFallbackChain:
             }
         ]
 
-        # Tier 3: Try Groq Vision first (Llama-3-vision)
+        # Tier 3: Gemini Vision
         try:
+            gemini_api_key = os.getenv("GEMINI_API_KEY", "")
             response = litellm.completion(
-                model="groq/llama-3.2-11b-vision-preview",
+                model="gemini/gemini-2.5-flash",
                 messages=messages,
                 temperature=0.1,
-                response_format={"type": "json_object"}
-            )
-            data = json.loads(response.choices[0].message.content)
-            return {
-                "text": data.get("extracted_text", ""),
-                "tier": "groq_vision",
-                "fraud_flags": [data.get("fraud_reason")] if data.get("logo_fraud_flag") else []
-            }
-        except Exception as e:
-            print(f"  [OCR Tier 3] Groq Vision failed: {e}. Falling back to Gemini.")
-
-        # Tier 4: Gemini Vision
-        try:
-            response = litellm.completion(
-                model="gemini/gemini-1.5-flash",
-                messages=messages,
-                temperature=0.1,
+                api_key=gemini_api_key,
             )
             content = response.choices[0].message.content
-            # Gemini might not strictly return JSON despite instructions if response_format isn't perfectly supported in litellm 1.4
             try:
-                # Strip markdown code blocks if present
                 clean_json = content.replace("```json", "").replace("```", "").strip()
                 data = json.loads(clean_json)
                 return {
@@ -146,10 +129,9 @@ class OCRFallbackChain:
                     "fraud_flags": [data.get("fraud_reason")] if data.get("logo_fraud_flag") else []
                 }
             except json.JSONDecodeError:
-                # Fallback if it returned raw text
                 return {"text": content, "tier": "gemini_vision", "fraud_flags": []}
         except Exception as e:
-            print(f"  [OCR Tier 4] Gemini Vision failed: {e}")
+            print(f"  [OCR Tier 3] Gemini Vision failed: {e}")
             return {"text": "", "tier": "failed", "fraud_flags": []}
 
 
@@ -162,6 +144,7 @@ def needs_ocr(page_data: dict[str, Any]) -> bool:
 def process_pages_with_ocr(
     pdf_path: str,
     pages: list[dict[str, Any]],
+    execution_mode: str = "online",
 ) -> list[dict[str, Any]]:
     
     chain = OCRFallbackChain()
@@ -175,7 +158,7 @@ def process_pages_with_ocr(
             image_bytes = pix.tobytes("png")
             doc.close()
 
-            result = chain.process_image(image_bytes)
+            result = chain.process_image(image_bytes, execution_mode=execution_mode)
             
             ocr_text = result["text"]
             page["ocr_text"] = ocr_text

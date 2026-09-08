@@ -49,15 +49,16 @@ VLLM_MODEL: str = os.getenv("VLLM_MODEL", "Qwen/Qwen2-VL-2B-Instruct-AWQ")
 
 
 # ---------------------------------------------------------------------------
-# Groq (FALLBACK ONLY -- used when local quality is insufficient)
+# Groq
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/qwen/qwen3.6-27b")
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-20b")  # Chat/text only
+GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/qwen/qwen3.8-27b")  # Structured JSON
 
 
 # ---------------------------------------------------------------------------
-# Gemini (FALLBACK ONLY -- used when local cannot handle long context)
+# Gemini (Fallback for extraction when Groq fails)
 # ---------------------------------------------------------------------------
 
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
@@ -71,10 +72,11 @@ GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini/gemini-2.5-flash")
 
 PROVIDER_MODELS: dict[str, str] = {
     "vllm": f"openai/{VLLM_MODEL}",
-    "groq": GROQ_MODEL,
+    "groq": GROQ_MODEL,                    # Used for chatbot (plain text)
+    "groq_extraction": GROQ_EXTRACTION_MODEL,  # Used for structured extraction
     "gemini": GEMINI_MODEL,
 }
 
-DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "vllm")
-VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "vllm")
+DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "gemini")
+VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini")
 

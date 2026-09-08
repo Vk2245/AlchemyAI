@@ -233,8 +233,10 @@ RULES:
 USER'S MESSAGE: {question}
 
 INSTRUCTIONS FOR ASSISTANT:
-You MUST answer the user's message using ONLY the information provided in the BACKGROUND KNOWLEDGE above. If there is data in the BACKGROUND KNOWLEDGE, DO NOT ask the user for data. Summarize or list what you see in the BACKGROUND KNOWLEDGE.
-Respond to the user naturally.
+1. If the user asks about their products, scans, or data, answer using ONLY the BACKGROUND KNOWLEDGE.
+2. If the user asks a general question like "what can you do?" or "how does this work?", explain your capabilities based on the 'CHATBOT CAPABILITIES' and 'ABOUT THE PLATFORM' sections above. Do NOT just list their files unless they specifically ask for them.
+3. If there is data in the BACKGROUND KNOWLEDGE, DO NOT ask the user to upload data.
+4. Respond to the user naturally.
 """
     return system_prompt, prompt
 

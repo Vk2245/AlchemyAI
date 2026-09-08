@@ -44,9 +44,12 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
 
     setStatus("processing");
     
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
     const token = localStorage.getItem("token") || "";
-    const eventSource = new EventSource(`${API_URL}/api/process/${documentId}?token=${token}`);
+    const mode = searchParams.get("mode") || "online";
+    const sseUrl = `${API_URL}/api/process/${documentId}?token=${token}&mode=${mode}`;
+    console.log("CONNECTING TO SSE:", sseUrl);
+    const eventSource = new EventSource(sseUrl);
     
     eventSource.onmessage = (event) => {
       try {
