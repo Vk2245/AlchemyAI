@@ -118,11 +118,29 @@ def run_pipeline(
             erp_res = trigger_erp_sync(record_dict)
             agent_log.append(erp_res["message"])
 
-        # Stage 8: Final Payload (Report Gen)
+        # Stage 8: AI Narrative Report Generation
+        yield _yield_progress(95, "Generating AI Analyst Narrative Report...")
+        from report.generate_report import generate_ai_narrative_report
+        
+        # Determine best provider available, default to what's requested
+        report_provider = provider
+        if provider == "local" and "gemini" in str(provider).lower():
+            report_provider = "gemini" # attempt to escalate
+            
+        report_md = generate_ai_narrative_report(
+            evidence_text=evidence.get("full_markdown", evidence.get("full_text", "")),
+            record=record_dict,
+            risk_flags=risk_summary.get("detected_risks", []),
+            agent_log=agent_log,
+            provider=report_provider
+        )
+
+        # Stage 9: Final Payload
         yield _yield_progress(100, "Report Generation complete!", {
             "record": record_dict,
             "risks": risk_summary,
             "agent_log": agent_log,
+            "report_md": report_md,
             "processing_time_sec": round(time.time() - start_time, 2)
         })
 

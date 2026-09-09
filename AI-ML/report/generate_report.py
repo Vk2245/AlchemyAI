@@ -24,7 +24,7 @@ def generate_ai_narrative_report(
     Generate a detailed narrative financial/document intelligence report using the LLM.
     Uses the full evidence text and structured extraction results.
     """
-    sys_prompt = \"\"\"You are an elite Financial Analyst and Document Intelligence expert.
+    sys_prompt = """You are an elite Financial Analyst and Document Intelligence expert.
 Your task is to write a highly detailed, professional, and precise narrative analyst report based on the provided document text and extraction data.
 RULES:
 1. DO NOT use raw data tables or massive bulleted lists for extracted entities.
@@ -34,9 +34,9 @@ RULES:
 5. Format beautifully with Markdown headers (H1, H2, H3), bold text for emphasis, and blockquotes for insights.
 6. The report MUST be detailed enough for a C-suite executive to read and make decisions. Minimum 500 words if the document is large.
 7. Start the report with `# Alchemy AI - Executive Intelligence Brief`.
-\"\"\"
+"""
 
-    user_prompt = f\"\"\"
+    user_prompt = f"""
 --- DOCUMENT METADATA ---
 Title: {record.get('document_title')}
 Type: {record.get('document_type')}
@@ -51,8 +51,8 @@ Risks: {json.dumps(risk_flags or [])}
 Agent Logs: {json.dumps(agent_log or [])}
 
 --- FULL DOCUMENT TEXT (Truncated if too long) ---
-{evidence_text[:60000]}  # Pass up to 60,000 chars to avoid massive context blows if not using Gemini
-\"\"\"
+{evidence_text[:15000]}  # Pass up to 15,000 chars to avoid Groq TPM limits
+"""
 
     # Force using a powerful model for report generation if possible (e.g. gemini/claude/gpt-4)
     # We will pass provider down, or fallback to the standard get_completion logic
