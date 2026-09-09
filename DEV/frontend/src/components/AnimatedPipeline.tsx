@@ -53,7 +53,7 @@ export default function AnimatedPipeline({ progress, isExcel = false }: { progre
       <div className="flex items-center justify-between min-w-[700px] gap-1">
         {displayStages.map((stage, i) => {
           const isActive = i < activeStagesCount;
-          
+
           return (
             <motion.div
               key={stage.label}
@@ -81,9 +81,8 @@ export default function AnimatedPipeline({ progress, isExcel = false }: { progre
                   />
                 </motion.div>
                 <span
-                  className={`text-[10px] font-medium max-w-[70px] text-center leading-tight transition-colors duration-300 ${
-                    isActive ? "text-[var(--foreground)]" : "text-[var(--muted)]"
-                  }`}
+                  className={`text-[10px] font-medium max-w-[70px] text-center leading-tight transition-colors duration-300 ${isActive ? "text-[var(--foreground)]" : "text-[var(--muted)]"
+                    }`}
                 >
                   {stage.label}
                 </span>

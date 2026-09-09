@@ -2,20 +2,89 @@
 # Alchemy AI - Global Git Ignore
 # ==========================================
 
-# 1. Ignore all .md and .txt files by default
+# ------------------------------------------
+# 1. Global Exclusions
+# ------------------------------------------
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environments
+.env
+.env.*
+!.env.example
+venv/
+env/
+ENV/
+.venv/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Text & Markdown (with exceptions)
 *.md
 *.txt
-
-# Exceptions to the above rule
 !README.md
 !requirements.txt
 
-# 2. Irrelevant / Old Project Folders
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------
+# 2. Python / Backend / AI-ML
+# ------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Uploads & Reports (Generated Data)
+DEV/backend/reports/
+DEV/backend/uploads/
+
+# AI / ML Model Artifacts & Datasets
+AI-ML/training/models/
+*.safetensors
+*.onnx
+*.pt
+*.pth
+*.bin
+AI-ML/dataset/
+AI-ML/data/
+
+# ------------------------------------------
+# 3. Node.js / Frontend (Next.js)
+# ------------------------------------------
+node_modules/
+DEV/frontend/node_modules/
+DEV/backend/node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Next.js & Build Artifacts
+DEV/frontend/.next/
+DEV/frontend/out/
+DEV/frontend/dist/
+DEV/frontend/build/
+DEV/backend/dist/
+coverage/
+*.tsbuildinfo
+DEV/frontend/next-env.d.ts
+DEV/frontend/.vercel/
+# ------------------------------------------
+# 4. Irrelevant / Scratch / Temp Files
+# ------------------------------------------
 Testing/
 DEV/skills/
 bug_fixes/
-
-# 3. Scratch & Cleanup Scripts
+bug fixes/
 cleanup.py
 scratch_chat_test.py
 test_vllm.py
@@ -23,58 +92,4 @@ update_chat.js
 catalogx.db
 fix_*.py
 patch_*.py
-
-# 4. Node / Next.js
-node_modules/
-DEV/frontend/node_modules/
-DEV/backend/node_modules/
-DEV/frontend/.next/
-DEV/frontend/out/
-DEV/frontend/dist/
-DEV/backend/dist/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# 5. Environment Variables
-.env
-.env.*
-!.env.example
-
-# 6. Build Artifacts & OS Files
-coverage/
-*.tsbuildinfo
-.DS_Store
-
-# 7. Database
-*.db
-*.sqlite
-*.sqlite3
-
-# 8. Python
-__pycache__/
-*.pyc
-*.pyo
-
-# 9. Uploads & Reports (Generated Data)
-DEV/backend/reports/
-DEV/backend/uploads/
-
-# 10. AI / ML Model Artifacts
-AI-ML/training/models/
-*.safetensors
-*.onnx
-*.pt
-*.pth
-*.bin
-
-# 11. Datasets
-AI-ML/dataset/
-AI-ML/data/
-
-# 12. Public folder
-DEV/frontend/public/
-
-
 UNI-HACK\AI-ML\Building Product Intelligence AI Module.md

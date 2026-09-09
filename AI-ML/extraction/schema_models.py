@@ -154,6 +154,14 @@ class ExtractionResult(BaseModel):
         default_factory=list,
         description="All extracted named entities",
     )
+    financial_summary: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Extracted financial totals, taxes, or payment terms"
+    )
+    key_dates: dict[str, str] = Field(
+        default_factory=dict,
+        description="Map of key date types to their values (e.g. 'due_date': '2024-01-01')"
+    )
 
 
 class ValidationIssue(BaseModel):

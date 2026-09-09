@@ -53,7 +53,7 @@ def _run_ocr_space(image_path: str) -> str:
         payload = {
             "apikey": OCR_SPACE_API_KEY,
             "language": "eng",
-            "isOverlayRequired": False
+            "isOverlayRequired": "false"
         }
         files = {"file": f}
         response = requests.post(url, files=files, data=payload, timeout=30)
@@ -224,15 +224,7 @@ def extract_text_from_image(image_path: str) -> dict:
     except Exception as e:
         print(f"[Fallback Triggered] {e}")
 
-    # --- Step 3: OpenRouter ---
-    try:
-        text = _run_openrouter_vision(image_path)
-        if text.strip():
-            return {"text": text, "source": "openrouter"}
-    except Exception as e:
-        print(f"[Fallback Triggered] {e}")
-
-    # --- Step 4: Gemini 1.5 Flash (Last Resort) ---
+    # --- Step 3: Gemini 1.5 Flash (Last Resort) ---
     try:
         text = _run_gemini_ocr(image_path)
         if text.strip():

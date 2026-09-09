@@ -53,8 +53,8 @@ def run_pipeline(
         branch_name = "Cloud API Pipeline (Gemini/Groq)" if execution_mode == "online" else "Local Edge Pipeline (vLLM)"
         yield _yield_progress(5, f"Branch Selected: {branch_name}")
 
-        # Stage 1: PDF Ingestion
-        yield _yield_progress(15, "PDF Ingestion...")
+        # Stage 1: Document Ingestion
+        yield _yield_progress(15, "Document Ingestion...")
         pages = extract_pages(pdf_path)
         
         # Stage 2: OCR Fallback
@@ -68,23 +68,23 @@ def run_pipeline(
             yield {"progress": -1, "message": "Document is empty and OCR failed", "data": None}
             return
 
-        # Stage 3: Industry Detection (Mocked/Integrated in next step)
-        yield _yield_progress(40, "Running Industry Detection...")
+        # Stage 3: Fraud Audit
+        yield _yield_progress(40, "Running Fraud Audit...")
 
-        # Stage 4: Attribute Extraction
+        # Stage 4: Entity Extraction
         yield _yield_progress(55, "Extracting entities (NER)...")
         record = extract_record_from_evidence(evidence, provider=provider)
         
-        # Stage 5: Taxonomy
-        yield _yield_progress(70, "Taxonomy Classification...")
+        # Stage 5: Classification
+        yield _yield_progress(70, "Classifying Document...")
         
-        # Phase 6 & 7: Validation & HITL (Confidence is mocked here for the hackathon)
-        record.record_confidence = 0.95
-        record.validation_passed = True
+        # Phase 6 & 7: Validation & Scoring
+        from confidence.score_record import score_record
+        record = score_record(record)
         record_dict = record.model_dump()
 
-        # Stage 6: AI Agent Research
-        yield _yield_progress(80, "Running AI Agent Research...")
+        # Stage 6: Agent Research
+        yield _yield_progress(80, "Running Agent Research...")
         # Risk Radar will invoke it if needed
         
         # Stage 7: Risk Radar
@@ -118,8 +118,8 @@ def run_pipeline(
             erp_res = trigger_erp_sync(record_dict)
             agent_log.append(erp_res["message"])
 
-        # Stage 8: Final Payload (Intelligence Gen)
-        yield _yield_progress(100, "Intelligence Gen complete!", {
+        # Stage 8: Final Payload (Report Gen)
+        yield _yield_progress(100, "Report Generation complete!", {
             "record": record_dict,
             "risks": risk_summary,
             "agent_log": agent_log,

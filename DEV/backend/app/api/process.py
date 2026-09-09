@@ -293,7 +293,8 @@ async def process_document(
                             
                             report_md = generate_report_markdown(
                                 record=report_input["record"],
-                                risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}]
+                                risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
+                                agent_log=report_input.get("agent_log", [])
                             )
                             html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
                             
@@ -393,7 +394,8 @@ async def process_document(
                                     
                                     report_md = generate_report_markdown(
                                         record=record_data,
-                                        risk_flags=data.get("risks", {}).get("detected_risks", [])
+                                        risk_flags=data.get("risks", {}).get("detected_risks", []),
+                                        agent_log=data.get("agent_log", [])
                                     )
                                     html_content = render_to_html(report_md, title=f"Intelligence Report: {record_data.get('document_title', 'Unknown')}")
                                     

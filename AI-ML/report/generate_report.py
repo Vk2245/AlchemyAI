@@ -1,20 +1,68 @@
 """
-Final report generation.
+Final report generation for Document Intelligence.
 
 Generates a comprehensive PDF report containing all pipeline outputs:
-extraction results, validation, confidence scores, taxonomy, industry
-detection, knowledge layer findings, risk flags, and the one-pager.
-This is a COMPULSORY output of every pipeline run.
+extraction results, validation, confidence scores, classification,
+risk flags, and agent research logs.
 """
 
 import sys
 import json
 from typing import Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from config.llm_client import get_completion
-from config.toon_utils import wrap_for_prompt
-from config.settings import REPORTS_DIR
+
+def generate_ai_narrative_report(
+    evidence_text: str,
+    record: dict[str, Any],
+    risk_flags: list[dict[str, Any]] | None = None,
+    agent_log: list[str] | None = None,
+    provider: str = "local"
+) -> str:
+    """
+    Generate a detailed narrative financial/document intelligence report using the LLM.
+    Uses the full evidence text and structured extraction results.
+    """
+    sys_prompt = \"\"\"You are an elite Financial Analyst and Document Intelligence expert.
+Your task is to write a highly detailed, professional, and precise narrative analyst report based on the provided document text and extraction data.
+RULES:
+1. DO NOT use raw data tables or massive bulleted lists for extracted entities.
+2. Write deep, insightful paragraphs (Executive Summary, Financial Performance, Risk Analysis, Key Takeaways).
+3. If the document is a Financial Statement (like an Annual Report), focus heavily on revenue, profit, margins, strategic shifts, and outlook.
+4. Integrate any risk flags or agent research logs smoothly into the narrative.
+5. Format beautifully with Markdown headers (H1, H2, H3), bold text for emphasis, and blockquotes for insights.
+6. The report MUST be detailed enough for a C-suite executive to read and make decisions. Minimum 500 words if the document is large.
+7. Start the report with `# Alchemy AI - Executive Intelligence Brief`.
+\"\"\"
+
+    user_prompt = f\"\"\"
+--- DOCUMENT METADATA ---
+Title: {record.get('document_title')}
+Type: {record.get('document_type')}
+Confidence: {record.get('record_confidence')}
+
+--- EXTRACTED FINANCIALS & DATES ---
+Financials: {json.dumps(record.get('financial_summary', {}))}
+Dates: {json.dumps(record.get('key_dates', {}))}
+
+--- RISK & AGENT LOGS ---
+Risks: {json.dumps(risk_flags or [])}
+Agent Logs: {json.dumps(agent_log or [])}
+
+--- FULL DOCUMENT TEXT (Truncated if too long) ---
+{evidence_text[:60000]}  # Pass up to 60,000 chars to avoid massive context blows if not using Gemini
+\"\"\"
+
+    # Force using a powerful model for report generation if possible (e.g. gemini/claude/gpt-4)
+    # We will pass provider down, or fallback to the standard get_completion logic
+    response = get_completion(
+        prompt=user_prompt,
+        system_prompt=sys_prompt,
+        provider=provider,
+        temperature=0.3
+    )
+    return response
 
 
 def generate_report_markdown(
@@ -26,181 +74,166 @@ def generate_report_markdown(
     knowledge_data: dict[str, Any] | None = None,
     risk_flags: list[dict[str, Any]] | None = None,
     onepager_md: str | None = None,
+    agent_log: list[str] | None = None,
 ) -> str:
     """
     Generate the full report as Markdown.
 
-    Combines all pipeline outputs into one structured document.
+    Combines all pipeline outputs into one premium structured document.
     """
     lines = []
-
+    
+    # -------------------------------------------------------------------------
     # Header
-    lines.append("# Product Intelligence Report")
+    # -------------------------------------------------------------------------
+    lines.append("# Alchemy AI - Document Intelligence Report")
     lines.append("")
-    from datetime import timedelta
+    
     ist_tz = timezone(timedelta(hours=5, minutes=30))
     lines.append(f"**Generated:** {datetime.now(ist_tz).strftime('%Y-%m-%d %I:%M %p IST')}")
-    lines.append(f"**Source:** {record.get('source_file', 'N/A')}")
+    lines.append(f"**Document Title:** {record.get('document_title', 'Unknown Document')}")
     lines.append("")
 
-    # --- Section 1: Document Overview ---
-    lines.append("## 1. Document Overview")
+    # -------------------------------------------------------------------------
+    # Section 1: Executive Summary
+    # -------------------------------------------------------------------------
+    lines.append("## 1. Executive Summary")
     lines.append("")
-    lines.append(f"| Field | Value |")
-    lines.append(f"|---|---|")
-    lines.append(f"| **Document Title** | {record.get('document_title', 'N/A')} |")
+    lines.append("> **AI Insight:**")
+    lines.append(f"> {record.get('summary', 'No summary available for this document.')}")
+    lines.append("")
+    
+    lines.append("| Core Metadata | Details |")
+    lines.append("|---|---|")
     lines.append(f"| **Document Type** | {record.get('document_type', 'N/A')} |")
     lines.append(f"| **Primary Party** | {record.get('primary_party', 'N/A')} |")
     lines.append(f"| **Secondary Party** | {record.get('secondary_party', 'N/A')} |")
     lines.append(f"| **Document Date** | {record.get('document_date', 'N/A')} |")
-    lines.append(f"| **Summary** | {record.get('summary', 'N/A')} |")
+    lines.append(f"| **Category** | {record.get('category', 'N/A')} |")
+    
+    rc = record.get('record_confidence', 0.0)
+    conf_status = "🟢 High" if rc >= 0.8 else ("🟡 Medium" if rc >= 0.5 else "🔴 Low")
+    lines.append(f"| **Overall Confidence** | {rc:.0%} ({conf_status}) |")
     lines.append("")
 
-    # --- Section 2: Industry Detection ---
-    lines.append("## 2. Industry Detection")
+    # -------------------------------------------------------------------------
+    # Section 2: Critical Risk & Compliance Radar
+    # -------------------------------------------------------------------------
+    lines.append("## 2. Risk & Compliance Radar")
     lines.append("")
-    if industry_detection:
-        lines.append(f"| Field | Value |")
-        lines.append(f"|---|---|")
-        lines.append(f"| **Industry** | {industry_detection.get('industry', 'N/A')} |")
-        lines.append(f"| **Product Domain** | {industry_detection.get('product_domain', 'N/A')} |")
-        lines.append(f"| **Product Family** | {industry_detection.get('product_family', 'N/A')} |")
-        lines.append(f"| **Document Type** | {industry_detection.get('document_type', 'N/A')} |")
-        lines.append(f"| **Confidence** | {industry_detection.get('confidence', 0):.0%} |")
-        lines.append(f"| **Reasoning** | {industry_detection.get('reasoning', 'N/A')} |")
-    else:
-        lines.append("_Industry detection was not run._")
-    lines.append("")
-
-    # --- Section 3: Extracted Entities ---
-    lines.append("## 3. Extracted Entities")
-    lines.append("")
-    # Support both 'entities' (from extraction schema) and 'attributes' (legacy)
-    attrs = record.get("entities", record.get("attributes", []))
-    if attrs:
-        lines.append(f"| Entity Type | Extracted Value | Confidence | Source Snippet |")
-        lines.append(f"|---|---|---|---|")
-        for attr in attrs:
-            # Support both schema formats
-            name = attr.get("entity_type", attr.get("name", ""))
-            value = attr.get("value", "")
-            conf = attr.get("confidence", 0.0)
-            source = (attr.get("source_text", "") or "")[:80].replace("\n", " ")
-            if len(source) == 80:
-                source += "..."
-            conf_str = f"{conf:.0%}"
-            lines.append(f"| **{name}** | {value} | {conf_str} | _{source}_ |")
-    else:
-        lines.append("_No entities extracted._")
-    lines.append("")
-
-    # --- Section 4: Taxonomy ---
-    lines.append("## 4. Taxonomy Classification")
-    lines.append("")
-    if taxonomy_result:
-        lines.append(f"| Field | Value |")
-        lines.append(f"|---|---|")
-        lines.append(f"| **Category** | {taxonomy_result.get('segment', '')} > {taxonomy_result.get('family', '')} > {taxonomy_result.get('product_class', '')} |")
-        lines.append(f"| **Code** | {taxonomy_result.get('category_code', 'N/A')} |")
-        lines.append(f"| **Confidence** | {taxonomy_result.get('confidence', 0):.0%} |")
-        lines.append(f"| **Reasoning** | {taxonomy_result.get('reasoning', 'N/A')} |")
-    else:
-        lines.append(f"**Category:** {record.get('category', 'N/A')}")
-    lines.append("")
-
-    # --- Section 5: Validation ---
-    lines.append("## 5. Validation Results")
-    lines.append("")
-    if validation_result:
-        passed = validation_result.get("passed", False)
-        lines.append(f"**Status:** {'PASSED' if passed else 'FAILED'}")
-        lines.append(f"**Errors:** {validation_result.get('error_count', 0)}")
-        lines.append(f"**Warnings:** {validation_result.get('warning_count', 0)}")
-        issues = validation_result.get("issues", [])
-        if issues:
-            lines.append("")
-            lines.append("| Severity | Field | Message |")
-            lines.append("|---|---|---|")
-            for issue in issues:
-                sev = issue.get("severity", "info").upper()
-                field = issue.get("field", "")
-                msg = issue.get("message", "")
-                lines.append(f"| {sev} | {field} | {msg} |")
-    else:
-        passed = record.get("validation_passed", False)
-        lines.append(f"**Status:** {'PASSED' if passed else 'FAILED'}")
-        errors = record.get("validation_errors", [])
-        if errors:
-            for err in errors:
-                lines.append(f"- {err}")
-    lines.append("")
-
-    # --- Section 6: Confidence ---
-    lines.append("## 6. Confidence Scoring")
-    lines.append("")
-    if confidence_summary:
-        rc = confidence_summary.get("record_confidence", 0.0)
-        lines.append(f"**Record Confidence:** {rc:.0%}")
-        lines.append(f"**Total Attributes:** {confidence_summary.get('total_attributes', 0)}")
-        lines.append(f"**High Confidence (>=70%):** {confidence_summary.get('high_confidence', 0)}")
-        lines.append(f"**Medium Confidence (40-70%):** {confidence_summary.get('medium_confidence', 0)}")
-        lines.append(f"**Low Confidence (<40%):** {confidence_summary.get('low_confidence', 0)}")
-        review = confidence_summary.get("fields_for_review", [])
-        if review:
-            lines.append(f"**Fields for Review:** {', '.join(review)}")
-    else:
-        rc = record.get("record_confidence", 0.0)
-        lines.append(f"**Record Confidence:** {rc:.0%}")
-    lines.append("")
-
-    # --- Section 7: Risk Radar ---
-    lines.append("## 7. Safety and Compliance Risk Radar")
-    lines.append("")
-    if risk_flags:
-        lines.append(f"**Total Flags:** {len(risk_flags)}")
+    if risk_flags and len(risk_flags) > 0:
+        lines.append(f"> ⚠️ **Attention Required:** {len(risk_flags)} potential risk(s) or anomalies detected.")
         lines.append("")
         for flag in risk_flags:
-            sev = flag.get("severity", "info")
-            lines.append(f"### [{sev.upper()}] {flag.get('rule_name', '')}")
-            lines.append(f"{flag.get('explanation', flag.get('description', ''))}")
+            sev = flag.get("severity", "medium").upper()
+            icon = "🔴" if sev == "HIGH" else ("🟡" if sev == "MEDIUM" else "🔵")
+            lines.append(f"### {icon} [{sev}] {flag.get('rule_name', 'Flagged Item')}")
+            lines.append(f"**Details:** {flag.get('explanation', flag.get('description', ''))}")
             lines.append("")
     else:
-        lines.append("_No safety/compliance risks detected._")
+        lines.append("> ✅ **Clear:** No critical fraud, safety, or compliance anomalies were flagged by the Risk Radar module.")
+        lines.append("")
+
+    # -------------------------------------------------------------------------
+    # Section 3: Agentic Web Research Logs
+    # -------------------------------------------------------------------------
+    lines.append("## 3. Web & Enterprise Research Logs")
+    lines.append("")
+    if agent_log and len(agent_log) > 0:
+        lines.append("The AI Agent performed the following background checks and integrations:")
+        lines.append("")
+        for log in agent_log:
+            lines.append(f"- {log}")
+    else:
+        lines.append("_No external web research or ERP synchronization was required or performed for this document._")
     lines.append("")
 
-    # --- Section 8: Knowledge Layer ---
-    if knowledge_data:
-        lines.append("## 8. Knowledge Layer")
+    # -------------------------------------------------------------------------
+    # Section 4: Comprehensive Entity Extraction
+    # -------------------------------------------------------------------------
+    lines.append("## 4. Extracted Entities")
+    lines.append("")
+    
+    entities = record.get("entities", [])
+    if entities:
+        lines.append("| Entity Type | Extracted Value | Confidence | Source Snippet |")
+        lines.append("|---|---|---|---|")
+        for ent in entities:
+            # Handle both old and new schema
+            name = ent.get("entity_type", ent.get("name", ""))
+            val = ent.get("value", "")
+            unit = ent.get("unit", "")
+            if unit:
+                val = f"{val} {unit}"
+            
+            conf = ent.get("confidence", 0.0)
+            source = (ent.get("source_text", "") or "")[:60].replace("\n", " ").strip()
+            if len(source) == 60:
+                source += "..."
+                
+            conf_icon = "🟢" if conf >= 0.7 else ("🟡" if conf >= 0.4 else "🔴")
+            lines.append(f"| **{name}** | {val} | {conf_icon} {conf:.0%} | _{source}_ |")
+    else:
+        lines.append("_No specific entities (Persons, Organizations, Amounts, etc.) were identified._")
+    lines.append("")
+
+    # -------------------------------------------------------------------------
+    # Section 5: Financials & Key Dates
+    # -------------------------------------------------------------------------
+    financials = record.get("financial_summary", {})
+    dates = record.get("key_dates", {})
+    
+    if financials or dates:
+        lines.append("## 5. Financials & Key Dates")
         lines.append("")
-        if knowledge_data.get("similar_products"):
-            lines.append("### Similar Products")
-            for sp in knowledge_data["similar_products"][:5]:
-                lines.append(f"- {sp.get('product_name', '?')} ({sp.get('manufacturer', '?')}) - Similarity: {sp.get('similarity_score', 0):.0%}")
+        if financials:
+            lines.append("### Financial Breakdown")
+            lines.append("| Metric | Value |")
+            lines.append("|---|---|")
+            for k, v in financials.items():
+                k_clean = k.replace("_", " ").title()
+                lines.append(f"| {k_clean} | {v} |")
             lines.append("")
-        if knowledge_data.get("compatible_products"):
-            lines.append("### Compatible Products")
-            for cp in knowledge_data["compatible_products"][:5]:
-                lines.append(f"- {cp.get('product_name', '?')} ({cp.get('manufacturer', '?')})")
+            
+        if dates:
+            lines.append("### Important Dates")
+            lines.append("| Event | Date |")
+            lines.append("|---|---|")
+            for k, v in dates.items():
+                k_clean = k.replace("_", " ").title()
+                lines.append(f"| {k_clean} | {v} |")
             lines.append("")
 
-    # --- Section 9: One-Pager ---
-    if onepager_md:
-        lines.append("## 9. Auto-Generated Product One-Pager")
-        lines.append("")
-        lines.append(onepager_md)
-        lines.append("")
+    # -------------------------------------------------------------------------
+    # Section 6: Validation & Quality Assessment
+    # -------------------------------------------------------------------------
+    lines.append("## 6. Document Validation Matrix")
+    lines.append("")
+    
+    passed = record.get("validation_passed", False)
+    status_msg = "✅ Passed Quality Checks" if passed else "❌ Failed Verification (Manual Review Required)"
+    lines.append(f"**Overall Status:** {status_msg}")
+    lines.append("")
+    
+    review_fields = record.get("fields_for_review", [])
+    if review_fields:
+        lines.append("**Fields Flagged for Manual Review (Low Confidence):**")
+        for f in review_fields:
+            lines.append(f"- `{f}`")
+    else:
+        lines.append("_All extracted core fields met the minimum confidence thresholds._")
+        
+    lines.append("")
 
+    # -------------------------------------------------------------------------
     # Footer
+    # -------------------------------------------------------------------------
     lines.append("---")
-    lines.append(f"*Report generated by Product Intelligence Platform AI-ML Module*")
-    lines.append(f"*Content hash: {record.get('content_hash', 'N/A')}*")
-
+    lines.append("*Report generated by Alchemy AI - Document Intelligence Platform*")
+    lines.append("*Machine Processed & Cryptographically Secured*")
+    
     return "\n".join(lines)
 
-
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

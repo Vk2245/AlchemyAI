@@ -20,7 +20,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
   const [status, setStatus] = useState<"connecting" | "processing" | "completed" | "error">("connecting");
   const [errorMsg, setErrorMsg] = useState("");
   const [isExcel, setIsExcel] = useState(false);
-  
+
   const router = useRouter();
   const logsContainerRef = useRef<HTMLDivElement>(null);
 
@@ -43,19 +43,19 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
     if (!documentId) return;
 
     setStatus("processing");
-    
+
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
     const token = localStorage.getItem("token") || "";
     const mode = searchParams.get("mode") || "online";
     const sseUrl = `${API_URL}/api/process/${documentId}?token=${token}&mode=${mode}`;
     console.log("CONNECTING TO SSE:", sseUrl);
     const eventSource = new EventSource(sseUrl);
-    
+
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         console.log("SSE EVENT RECEIVED:", data);
-        
+
         if (data.is_excel !== undefined) {
           setIsExcel(data.is_excel);
         }
@@ -63,7 +63,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
         if (data.progress !== undefined) {
           setProgress(data.progress);
         }
-        
+
         if (data.message) {
           setLogs(prev => [...prev, {
             id: Date.now().toString() + Math.random().toString(),
@@ -71,7 +71,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
             timestamp: new Date().toLocaleTimeString()
           }]);
         }
-        
+
         if (data.status === "completed") {
           eventSource.close();
           setStatus("completed");
@@ -87,14 +87,14 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
         console.error("Failed to parse SSE data", err);
       }
     };
-    
+
     eventSource.onerror = (err) => {
       console.error("SSE Error:", err);
       eventSource.close();
       setStatus("error");
       setErrorMsg("Connection to server lost. Please check if backend is running.");
     };
-    
+
     return () => {
       console.log("Cleaning up EventSource");
       eventSource.close();
@@ -123,9 +123,9 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
               {progress}%
             </span>
           </div>
-          
+
           <div className="h-3 w-full bg-black/40 rounded-full overflow-hidden relative border border-white/5">
-            <motion.div 
+            <motion.div
               className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -140,7 +140,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
         </div>
 
         {/* Live Logs */}
-        <div 
+        <div
           ref={logsContainerRef}
           className="flex-1 min-h-0 bg-black/5 dark:bg-black/40 rounded-2xl p-6 overflow-y-auto border border-black/5 dark:border-white/5 shadow-inner"
         >
@@ -163,11 +163,11 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </div>
-      
+
       {/* Status Indicators */}
       <AnimatePresence mode="wait">
         {status === "processing" && (
-          <motion.div 
+          <motion.div
             key="processing"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -177,7 +177,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
             <Loader2 size={18} className="animate-spin text-blue-400" />
             <span className="text-sm font-medium tracking-wide">Pipeline running in the cloud...</span>
             <div className="w-px h-6 bg-[var(--border)] ml-2"></div>
-            <button 
+            <button
               onClick={() => router.push("/")}
               className="px-4 py-1.5 hover:bg-black/10 dark:hover:bg-white/10 text-[var(--foreground)] rounded-full text-xs font-semibold uppercase tracking-wider transition-colors"
             >
@@ -185,9 +185,9 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
             </button>
           </motion.div>
         )}
-        
+
         {status === "completed" && (
-          <motion.div 
+          <motion.div
             key="completed"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -199,7 +199,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
         )}
 
         {status === "error" && (
-          <motion.div 
+          <motion.div
             key="error"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -209,7 +209,7 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
               <AlertCircle size={18} />
               <span className="text-sm font-medium tracking-wide">{errorMsg}</span>
             </div>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors"
             >
