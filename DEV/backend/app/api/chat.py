@@ -65,15 +65,15 @@ async def _load_user_records(user_id: int, db: AsyncSession) -> list[dict]:
         }
         if pr:
             rec.update({
-                "product_name": pr.product_name,
-                "manufacturer": pr.manufacturer,
+                "document_title": pr.document_title,
+                "primary_party": pr.primary_party,
                 "part_number": pr.part_number,
-                "industry": pr.industry,
+                "document_type": pr.document_type,
                 "category": pr.category,
                 "record_confidence": pr.record_confidence,
                 "validation_passed": pr.validation_passed,
                 "risk_level": pr.risk_level,
-                "record_data": pr.record_data,
+                "record_data": pr.record_data, # MINI COPY FOR CHATBOT!
             })
         records.append(rec)
 

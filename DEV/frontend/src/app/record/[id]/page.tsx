@@ -363,6 +363,16 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                   <ShieldAlert size={14} className="inline mr-2 -mt-0.5" />
                   Safety Checks ({record.risks.length})
                 </button>
+                <button
+                  onClick={() => setActiveTab("dynamic")}
+                  className={`flex-1 text-sm font-medium py-2 rounded-lg transition-all ${activeTab === "dynamic"
+                      ? "bg-black/10 dark:bg-white/10 text-[var(--foreground)]"
+                      : "text-[var(--muted)] hover:text-[var(--secondary)]"
+                    }`}
+                >
+                  <Globe2 size={14} className="inline mr-2 -mt-0.5" />
+                  Dynamic Data
+                </button>
               </div>
 
               <AnimatePresence mode="wait">
@@ -458,6 +468,27 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                         ))}
                       </tbody>
                     </table>
+                  </motion.div>
+                ) : activeTab === "dynamic" ? (
+                  <motion.div
+                    key="dynamic"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="space-y-4"
+                  >
+                    {Object.entries(record.record_data).filter(([k]) => k !== "entities" && k !== "excel_path").map(([key, val], i) => (
+                      <div key={i} className="bg-white/[0.02] border border-white/5 rounded-xl p-4">
+                        <h4 className="text-xs font-semibold text-[var(--secondary)] uppercase tracking-wider mb-2">
+                          {key.replace(/_/g, " ")}
+                        </h4>
+                        {typeof val === "object" ? (
+                          <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap">{JSON.stringify(val, null, 2)}</pre>
+                        ) : (
+                          <p className="text-sm text-gray-200">{String(val)}</p>
+                        )}
+                      </div>
+                    ))}
                   </motion.div>
                 ) : (
                   <motion.div

@@ -34,6 +34,10 @@ DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
     f"sqlite+aiosqlite:///{BASE_DIR / 'Alchemy AI.db'}",
 )
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("postgresql+asyncpg://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # ---------------------------------------------------------------------------
 # Security
