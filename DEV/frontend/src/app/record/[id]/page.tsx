@@ -60,7 +60,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [copiedHash, setCopiedHash] = useState(false);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"attributes" | "risks">("attributes");
+  const [activeTab, setActiveTab] = useState<"attributes" | "risks" | "dynamic">("attributes");
 
   useEffect(() => {
     async function fetchRecord() {
