@@ -24,7 +24,6 @@ if (fs.existsSync(envPath)) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: "standalone",
     env: envVars,
 };
 
