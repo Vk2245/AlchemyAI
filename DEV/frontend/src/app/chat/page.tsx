@@ -61,7 +61,7 @@ export default function ChatPage() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/chat/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -77,7 +77,7 @@ export default function ChatPage() {
     if (!token) return;
 
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(
         `${API}/api/chat/history?conversation_id=${convId}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -106,7 +106,7 @@ export default function ChatPage() {
 
     try {
       const executionMode = localStorage.getItem("executionMode") || "online";
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/chat`, {
         method: "POST",
         headers: {
@@ -189,7 +189,7 @@ export default function ChatPage() {
     if (!token) return;
 
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       // Clear specific conversation if active, else clear all
       const url = conversationId 
         ? `${API}/api/chat/history?conversation_id=${conversationId}`

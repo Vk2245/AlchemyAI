@@ -40,7 +40,7 @@ export default function DashboardPage() {
     if (!token) return;
 
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/records/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -63,7 +63,7 @@ export default function DashboardPage() {
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/records/${docId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }

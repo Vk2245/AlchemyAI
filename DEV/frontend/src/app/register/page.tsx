@@ -62,7 +62,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
       const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

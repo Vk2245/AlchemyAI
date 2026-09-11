@@ -77,7 +77,7 @@ export default function UploadZone({
 
       const formData = new FormData();
       formData.append("file", file);
-      const API = "http://127.0.0.1:6104";
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104";
 
       const abortController = new AbortController();
       abortControllerRef.current = abortController;

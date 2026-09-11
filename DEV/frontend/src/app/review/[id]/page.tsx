@@ -23,7 +23,7 @@ export default function ReviewPage() {
           return;
         }
 
-        const res = await fetch(`http://127.0.0.1:6104/api/records/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104"}/api/records/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -67,7 +67,7 @@ export default function ReviewPage() {
         }
       };
 
-      const res = await fetch(`http://127.0.0.1:6104/api/review/${id}/verify`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:6104"}/api/review/${id}/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
