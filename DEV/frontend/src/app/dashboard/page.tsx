@@ -20,8 +20,8 @@ interface RecordType {
   id: string;
   document_id: number;
   document_title: string | null;
-  manufacturer: string | null;
-  industry: string | null;
+  primary_party: string | null;
+  document_type: string | null;
   risk_level: string | null;
   record_confidence: number | null;
   uploaded_at: string | null;
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                       {rec.document_title || "Unknown Document"}
                     </h3>
                     <p className="text-xs text-[var(--muted)] mt-0.5 truncate">
-                      {rec.manufacturer || "Unknown Mfr"} - {rec.industry || "Unknown Industry"} - {rec.uploaded_at ? new Date(rec.uploaded_at).toLocaleDateString() : ""}
+                      {rec.primary_party || "Unknown Entity"} - {rec.document_type || "Unknown Type"} - {rec.uploaded_at ? new Date(rec.uploaded_at).toLocaleDateString() : ""}
                     </p>
                   </div>
                 </Link>
