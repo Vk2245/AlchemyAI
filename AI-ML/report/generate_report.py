@@ -54,7 +54,7 @@ Risks: {json.dumps(risk_flags or [])}
 Agent Logs: {json.dumps(agent_log or [])}
 
 --- FULL DOCUMENT TEXT (Truncated if too long) ---
-{evidence_text[:15000]}  # Pass up to 15,000 chars to avoid Groq TPM limits
+{evidence_text[:15000]}
 """
 
     # Force using a powerful model for report generation if possible (e.g. gemini/claude/gpt-4)
