@@ -156,7 +156,7 @@ def _run_gemini_ocr(image_path: str) -> str:
     Attempts to extract text using Gemini 1.5 Flash via native API.
     """
     print("[OCR] Trying Gemini 1.5 Flash...")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
     base64_image = encode_image_to_base64(image_path)
     
     payload = {

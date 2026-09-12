@@ -17,7 +17,7 @@ from .ocr_engine import extract_text_from_image
 # CONSTANTS
 # ──────────────────────────────────────────────
 # In a real app, these would come from config.py or environment variables
-DEFAULT_BRAIN_MODEL = "gemini/gemini-1.5-flash"
+DEFAULT_BRAIN_MODEL = "gemini/gemini-2.5-flash"
 
 # ──────────────────────────────────────────────
 # MAIN FUNCTIONS
