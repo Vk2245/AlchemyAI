@@ -88,6 +88,6 @@ PROVIDER_MODELS: dict[str, str] = {
     "gemini": GEMINI_MODEL,
 }
 
-DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "cerebras")
+# Ensure DEFAULT_PROVIDER is configured via environment or falls back to gemini for cloud deployments
+DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "gemini")
 VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini")
-

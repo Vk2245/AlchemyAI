@@ -381,7 +381,17 @@ export default function ChatPage() {
                     : "glass-panel text-[var(--secondary)]"
                 }`}
               >
-                <p className="whitespace-pre-wrap">{msg.content}</p>
+                <p className="whitespace-pre-wrap">
+                  {msg.content
+                    .replace(/\*\*(.*?)\*\*/g, "$1") // bold
+                    .replace(/\*(.*?)\*/g, "$1") // italic
+                    .replace(/__(.*?)__/g, "$1") // bold
+                    .replace(/_(.*?)_/g, "$1") // italic
+                    .replace(/```[\s\S]*?```/g, "[Code Block]") // code block
+                    .replace(/`(.*?)`/g, "$1") // inline code
+                    .replace(/^#+\s/gm, "") // headers
+                    .replace(/\[(.*?)\]\(.*?\)/g, "$1")}
+                </p>
               </div>
             </motion.div>
           ))}
