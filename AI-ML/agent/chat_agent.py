@@ -37,11 +37,11 @@ class ChatState(TypedDict):
 def _serialize_record(rec: dict) -> str:
     """Convert a product record dict into a readable text block."""
     lines = []
-    lines.append(f"Product: {rec.get('product_name', 'Unknown')}")
-    if rec.get("manufacturer"):
-        lines.append(f"  Manufacturer: {rec['manufacturer']}")
-    if rec.get("industry"):
-        lines.append(f"  Industry: {rec['industry']}")
+    lines.append(f"Document Title: {rec.get('document_title', 'Unknown')}")
+    if rec.get("primary_party"):
+        lines.append(f"  Primary Party: {rec['primary_party']}")
+    if rec.get("document_type"):
+        lines.append(f"  Document Type: {rec['document_type']}")
     if rec.get("category"):
         lines.append(f"  Category: {rec['category']}")
     if rec.get("part_number"):
@@ -60,29 +60,24 @@ def _serialize_record(rec: dict) -> str:
     # Include key attributes from record_data if available
     record_data = rec.get("record_data", {})
     if isinstance(record_data, dict):
-        # Handle Excel Bulk Category Records
-        categories = record_data.get("categories", {})
-        if categories and isinstance(categories, dict):
-            lines.append(f"  Source: Bulk Excel Upload")
-            stats = record_data.get("stats", {})
-            if stats:
-                lines.append(f"  Total Items: {stats.get('total', 'Unknown')} (Success: {stats.get('success', 0)})")
+        if record_data.get("summary"):
+            lines.append(f"  Summary: {record_data['summary']}")
             
-            lines.append(f"  Categories Found:")
-            for cat_name, items in list(categories.items())[:5]: # Show max 5 categories
-                lines.append(f"    - Category: {cat_name} ({len(items)} items)")
-                if items and len(items) > 0:
-                    sample = items[0]
-                    raw_desc = sample.get("INPUT - Part_Desc", "Unknown")
-                    lines.append(f"      Sample: {raw_desc}")
-                    
-                    # Extracted sample
-                    keys = [k for k in sample.keys() if k != "INPUT - Part_Desc" and k != "Category"]
-                    if keys:
-                        details = ", ".join([f"{k}: {sample[k]}" for k in keys[:3]])
-                        lines.append(f"      Extracted: {details}")
+        if record_data.get("financial_summary"):
+            fs = record_data["financial_summary"]
+            lines.append(f"  Financials: Revenue {fs.get('total_revenue', 'N/A')}, Net Income {fs.get('net_income', 'N/A')}, Total Assets {fs.get('total_assets', 'N/A')}, Total Liabilities {fs.get('total_liabilities', 'N/A')}")
+            
+        if record_data.get("key_dates"):
+            lines.append("  Key Dates:")
+            for kd in record_data["key_dates"]:
+                lines.append(f"    - {kd.get('date', 'Unknown')}: {kd.get('event', 'Unknown')} ({kd.get('importance', 'N/A')})")
+                
+        if record_data.get("entities"):
+            lines.append("  Key Entities:")
+            for ent in record_data["entities"]:
+                lines.append(f"    - {ent.get('name', 'Unknown')} ({ent.get('type', 'Unknown')})")
 
-        # Handle Standard PDF Records
+        # Handle Standard PDF Records legacy attributes
         attrs = record_data.get("attributes", record_data.get("extracted_attributes", []))
         if isinstance(attrs, list) and attrs:
             lines.append("  Key Attributes:")
