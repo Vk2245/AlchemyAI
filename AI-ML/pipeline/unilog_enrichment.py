@@ -109,12 +109,12 @@ def process_unilog_catalogue(input_file: str):
     total_items = len(df)
     
     # ---------------------------------------------------------
-    # Processing 50 items for demonstration to avoid API Rate Limits (429)
-    # on free Groq/Gemini tiers.
+    # Processing 15 items for demonstration to avoid API Rate Limits (429)
+    # on free Groq/Gemini tiers, which only allow 15 RPM.
     # ---------------------------------------------------------
-    df = df.head(50)
+    df = df.head(15)
     
-    yield {"progress": 10, "message": f"Loaded {total_items} items (Demo mode: processing top 50 to respect Free API limits). Starting REAL LLM enrichment..."}
+    yield {"progress": 10, "message": f"Loaded {total_items} items (Demo mode: processing top 15 to respect 15 RPM Free API limits). Starting REAL LLM enrichment..."}
     
     results = []
     import concurrent.futures
