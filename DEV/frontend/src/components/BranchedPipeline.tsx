@@ -21,9 +21,9 @@ import {
 
 export default function BranchedPipeline() {
   const commonTail = [
-    { icon: Brain, label: "Cloud LLM Gaps", color: "#ec4899" },
+    { icon: Brain, label: "Contextual AI Gaps", color: "#ec4899" },
     { icon: AlertTriangle, label: "Validation & HITL", color: "#ef4444" },
-    { icon: Search, label: "Risk Radar", color: "#f97316" },
+    { icon: Search, label: "Adaptive Risk Radar", color: "#f97316" },
     { icon: ShieldCheck, label: "Cryptographic Seal", color: "#14b8a6" },
   ];
 

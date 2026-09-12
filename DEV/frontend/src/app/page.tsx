@@ -124,7 +124,7 @@ const pipelineStages = [
   { icon: Layers, label: "Local NER Extraction", color: "#8b5cf6" },
   { icon: Brain, label: "Cloud LLM Fallback", color: "#ec4899" },
   { icon: AlertTriangle, label: "Validation & HITL", color: "#ef4444" },
-  { icon: Search, label: "Risk Radar", color: "#f97316" },
+  { icon: Search, label: "Adaptive Risk Radar", color: "#f97316" },
   { icon: FileText, label: "Map-Reduce Summary", color: "#06b6d4" },
   { icon: ShieldCheck, label: "Cryptographic Seal", color: "#14b8a6" },
 ];

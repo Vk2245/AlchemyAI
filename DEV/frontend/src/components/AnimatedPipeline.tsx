@@ -14,13 +14,13 @@ import {
 } from "lucide-react";
 
 export const pipelineStages = [
-  { icon: FileSearch, label: "PDF Ingestion", color: "#3b82f6" },
-  { icon: ScanLine, label: "OCR", color: "#8b5cf6" },
-  { icon: Globe2, label: "Industry Detection", color: "#10b981" },
-  { icon: Layers, label: "Attribute Extraction", color: "#f59e0b" },
-  { icon: Tags, label: "Taxonomy", color: "#ef4444" },
-  { icon: Brain, label: "AI Agent Research", color: "#ec4899" },
-  { icon: AlertTriangle, label: "Risk Radar", color: "#f97316" },
+  { icon: FileSearch, label: "Document Ingestion", color: "#3b82f6" },
+  { icon: ScanLine, label: "Multi-Tier OCR", color: "#8b5cf6" },
+  { icon: Globe2, label: "Dynamic Classification", color: "#10b981" },
+  { icon: Layers, label: "Adaptive NER", color: "#f59e0b" },
+  { icon: Tags, label: "Contextual Taxonomy", color: "#ef4444" },
+  { icon: Brain, label: "Agentic Research", color: "#ec4899" },
+  { icon: AlertTriangle, label: "Adaptive Risk Radar", color: "#f97316" },
   { icon: FileOutput, label: "Intelligence Gen", color: "#06b6d4" },
 ];
 
