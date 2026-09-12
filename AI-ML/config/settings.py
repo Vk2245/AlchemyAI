@@ -53,8 +53,8 @@ VLLM_MODEL: str = os.getenv("VLLM_MODEL", "Qwen/Qwen2-VL-2B-Instruct-AWQ")
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-20b")  # Chat/text only
-GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/qwen/qwen3.8-27b")  # Structured JSON
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "cerebras/gpt-oss-120b")  # Chat/text only
+GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "cerebras/qwen-3.8-27b")  # Structured JSON
 
 
 # ---------------------------------------------------------------------------
