@@ -63,9 +63,12 @@ def run_pipeline(
             
         evidence = build_evidence(pdf_path, pages)
         
-        # Check if empty
-        if not evidence.get("full_text", "").strip():
-            yield {"progress": -1, "message": "Document is empty and OCR failed", "data": None}
+        # Check if empty or contains only garbage/punctuation
+        import re
+        text_content = evidence.get("full_text", "")
+        alphanumeric_chars = re.sub(r'[^a-zA-Z0-9]', '', text_content)
+        if len(alphanumeric_chars) < 5:
+            yield {"progress": -1, "message": "Document is empty or unreadable by OCR", "data": None}
             return
 
         # Stage 3: Fraud Audit

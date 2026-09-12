@@ -113,8 +113,9 @@ class OCRFallbackChain:
         # Tier 3: Gemini Vision
         try:
             gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+            gemini_model = os.getenv("GEMINI_MODEL", "gemini/gemini-1.5-flash")
             response = litellm.completion(
-                model="gemini/gemini-2.5-flash",
+                model=gemini_model,
                 messages=messages,
                 temperature=0.1,
                 api_key=gemini_api_key,
