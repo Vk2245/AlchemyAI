@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="DEV/frontend/LOGO/logo_square.png" alt="Alchemy AI Logo" width="150"/>
+
 # Alchemy AI
 
 ### *Transforming Chaos into Intelligence*
