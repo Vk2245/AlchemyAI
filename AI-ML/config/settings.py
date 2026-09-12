@@ -49,16 +49,23 @@ VLLM_MODEL: str = os.getenv("VLLM_MODEL", "Qwen/Qwen2-VL-2B-Instruct-AWQ")
 
 
 # ---------------------------------------------------------------------------
+# Cerebras
+# ---------------------------------------------------------------------------
+
+CEREBRAS_API_KEY: str = os.getenv("CEREBRAS_API_KEY", "")
+CEREBRAS_MODEL: str = os.getenv("CEREBRAS_MODEL", "cerebras/gpt-oss-120b")
+CEREBRAS_EXTRACTION_MODEL: str = os.getenv("CEREBRAS_EXTRACTION_MODEL", "cerebras/qwen-3.8-27b")
+
+# ---------------------------------------------------------------------------
 # Groq
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "cerebras/gpt-oss-120b")  # Chat/text only
-GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "cerebras/qwen-3.8-27b")  # Structured JSON
-
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/llama-3.1-8b-instant")  # Chat/text only
+GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/llama-3.1-8b-instant")  # Structured JSON
 
 # ---------------------------------------------------------------------------
-# Gemini (Fallback for extraction when Groq fails)
+# Gemini (Fallback for extraction)
 # ---------------------------------------------------------------------------
 
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
@@ -72,11 +79,13 @@ GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini/gemini-2.5-flash")
 
 PROVIDER_MODELS: dict[str, str] = {
     "vllm": f"openai/{VLLM_MODEL}",
-    "groq": GROQ_MODEL,                    # Used for chatbot (plain text)
-    "groq_extraction": GROQ_EXTRACTION_MODEL,  # Used for structured extraction
+    "cerebras": CEREBRAS_MODEL,
+    "cerebras_extraction": CEREBRAS_EXTRACTION_MODEL,
+    "groq": GROQ_MODEL,                    
+    "groq_extraction": GROQ_EXTRACTION_MODEL,  
     "gemini": GEMINI_MODEL,
 }
 
-DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "gemini")
+DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "cerebras")
 VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini")
 

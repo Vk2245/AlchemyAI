@@ -50,6 +50,8 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
     if provider == "vllm":
         kwargs["api_base"] = VLLM_BASE_URL
         kwargs["api_key"] = "dummy-key"  # vLLM/OpenAI format requires a dummy key
+    elif provider == "cerebras":
+        kwargs["api_key"] = CEREBRAS_API_KEY
     elif provider == "groq":
         kwargs["api_key"] = GROQ_API_KEY
     elif provider == "gemini":
@@ -69,11 +71,25 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
         if FALLBACK_GEMINI_API_KEY:
             fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": FALLBACK_GEMINI_API_KEY})
     else:
-        # For non-gemini providers, use Gemini as fallback (Groq -> Gemini)
-        if provider != "groq" and GROQ_API_KEY:
-            fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
-        if provider == "groq" and GEMINI_API_KEY:
-            fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
+        # For non-gemini providers, build the chain: Cerebras -> Groq -> Gemini
+        # If primary is Cerebras, fallback to Groq, then Gemini
+        if provider == "cerebras":
+            if GROQ_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
+            if GEMINI_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
+        # If primary is Groq, fallback to Gemini
+        elif provider == "groq":
+            if GEMINI_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
+        # If vLLM, fallback to Cerebras -> Groq -> Gemini
+        elif provider == "vllm":
+            if CEREBRAS_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["cerebras"], "api_key": CEREBRAS_API_KEY})
+            if GROQ_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
+            if GEMINI_API_KEY:
+                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
         
     if fallbacks:
         kwargs["fallbacks"] = fallbacks
