@@ -66,10 +66,12 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
     # Active Fallback Configuration (litellm will automatically try these if the primary fails)
     fallbacks = []
     
-    # Gemini provider: fallback to secondary Gemini key only (safety_settings crash other providers)
+    # Gemini provider: fallback to secondary Gemini key, and then Groq
     if provider == "gemini":
         if FALLBACK_GEMINI_API_KEY:
             fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": FALLBACK_GEMINI_API_KEY})
+        if GROQ_API_KEY:
+            fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
     else:
         # For non-gemini providers, build the chain: Cerebras -> Groq -> Gemini
         # If primary is Cerebras, fallback to Groq, then Gemini
@@ -207,6 +209,9 @@ def get_structured_output(
             providers_to_try.append("groq")
         if GEMINI_API_KEY:
             providers_to_try.append("gemini")
+    elif provider == "gemini":
+        if GROQ_API_KEY:
+            providers_to_try.append("groq")
 
     last_error = None
     for current_provider in providers_to_try:
