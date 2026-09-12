@@ -123,8 +123,11 @@ def generate_report_markdown(
     # -------------------------------------------------------------------------
     lines.append("## 1. Executive Summary")
     lines.append("")
-    lines.append("> **AI Insight:**")
-    lines.append(f"> {record.get('summary', 'No summary available for this document.')}")
+    if onepager_md:
+        lines.append(onepager_md)
+    else:
+        lines.append("> **AI Insight:**")
+        lines.append(f"> {record.get('summary', 'No summary available for this document.')}")
     lines.append("")
     
     lines.append("| Core Metadata | Details |")

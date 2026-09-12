@@ -393,13 +393,13 @@ async def process_document(
                                     from report.generate_report import generate_report_markdown
                                     from onepager.render_output import render_to_html, render_to_pdf
                                     
-                                    report_md = data.get("report_md")
-                                    if not report_md:
-                                        report_md = generate_report_markdown(
-                                            record=record_data,
-                                            risk_flags=data.get("risks", {}).get("detected_risks", []),
-                                            agent_log=data.get("agent_log", [])
-                                        )
+                                    narrative_md = data.get("report_md")
+                                    report_md = generate_report_markdown(
+                                        record=record_data,
+                                        risk_flags=data.get("risks", {}).get("detected_risks", []),
+                                        agent_log=data.get("agent_log", []),
+                                        onepager_md=narrative_md
+                                    )
                                     html_content = render_to_html(report_md, title=f"Intelligence Report: {record_data.get('document_title', 'Unknown')}")
                                     
                                     report_id = f"PDF_{bg_doc.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
