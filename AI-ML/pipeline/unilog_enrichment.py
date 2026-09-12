@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import json
 import re
 import os
@@ -99,9 +99,9 @@ def process_unilog_catalogue(input_file: str):
     yield {"progress": 5, "message": "Loading Excel file..."}
     try:
         if path.suffix.lower() == '.csv':
-            df = pd.read_csv(path)
+            df = pl.read_csv(path)
         else:
-            df = pd.read_excel(path)
+            df = pl.read_excel(path)
     except Exception as e:
         yield {"progress": -1, "message": f"Failed to read Excel: {e}"}
         return
@@ -143,9 +143,9 @@ def process_unilog_catalogue(input_file: str):
     if not desc_col:
         yield {"progress": -1, "message": f"Error: Could not find a description column in the uploaded Excel file. Columns found: {list(df.columns)[:5]}"}
         return
-    for idx, row in df.iterrows():
+    for idx, row in enumerate(df.iter_rows(named=True)):
         raw_desc = row.get(desc_col, "")
-        if pd.isna(raw_desc) or not str(raw_desc).strip():
+        if raw_desc is None or not str(raw_desc).strip():
             continue
         valid_rows.append((idx, str(raw_desc).strip()))
         
@@ -203,8 +203,8 @@ def process_unilog_catalogue(input_file: str):
     
     # Save the raw results to a new CSV file for the Project requirement
     output_path = path.parent / f"Enriched_{path.stem}.csv"
-    final_df = pd.DataFrame(results)
-    final_df.to_csv(output_path, index=False)
+    final_df = pl.DataFrame(results)
+    final_df.write_csv(output_path)
     
     # Group results by Category for the PDF generation
     grouped_data = {}
