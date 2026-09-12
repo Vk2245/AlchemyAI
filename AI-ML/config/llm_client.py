@@ -188,10 +188,25 @@ def get_structured_output(
     litellm's built-in fallbacks do NOT work through instructor's wrapper,
     so we handle fallback manually here.
     """
-    # Try the primary provider first, then fallback to gemini if it fails
+    # Try the primary provider first, then fallback down the chain
     providers_to_try = [provider]
-    if provider != "gemini" and GEMINI_API_KEY:
-        providers_to_try.append("gemini")
+    
+    # Build fallback chain manually
+    if provider == "cerebras":
+        if GROQ_API_KEY:
+            providers_to_try.append("groq")
+        if GEMINI_API_KEY:
+            providers_to_try.append("gemini")
+    elif provider == "groq":
+        if GEMINI_API_KEY:
+            providers_to_try.append("gemini")
+    elif provider == "vllm":
+        if CEREBRAS_API_KEY:
+            providers_to_try.append("cerebras")
+        if GROQ_API_KEY:
+            providers_to_try.append("groq")
+        if GEMINI_API_KEY:
+            providers_to_try.append("gemini")
 
     last_error = None
     for current_provider in providers_to_try:
@@ -227,7 +242,7 @@ def _structured_output_single(
 ) -> T:
     """Internal: attempt structured output with a single provider."""
 
-    if provider in ("vllm", "groq"):
+    if provider in ("vllm", "groq", "cerebras"):
         json_instruction = (
             "You MUST return your response as a valid JSON object. "
             "Do NOT wrap it in markdown blocks. Do NOT include any explanations before or after the JSON."
@@ -242,8 +257,13 @@ def _structured_output_single(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    # Use the structured JSON model if provider is groq
-    model_key = "groq_extraction" if provider == "groq" else provider
+    # Use the structured JSON model if provider is groq or cerebras
+    if provider == "groq":
+        model_key = "groq_extraction"
+    elif provider == "cerebras":
+        model_key = "cerebras_extraction"
+    else:
+        model_key = provider
     model = _get_model_string(model_key)
     
     # Build kwargs WITHOUT fallbacks — we handle fallback manually above
@@ -251,6 +271,8 @@ def _structured_output_single(
     if provider == "vllm":
         kwargs["api_base"] = VLLM_BASE_URL
         kwargs["api_key"] = "dummy-key"
+    elif provider == "cerebras":
+        kwargs["api_key"] = CEREBRAS_API_KEY
     elif provider == "groq":
         kwargs["api_key"] = GROQ_API_KEY
     elif provider == "gemini":
@@ -263,8 +285,8 @@ def _structured_output_single(
         ]
 
     # Create an instructor-patched client via litellm
-    # Use Mode.JSON for vLLM and Groq to avoid tool_use_failed errors
-    if provider in ("vllm", "groq"):
+    # Use Mode.JSON for vLLM, Groq, and Cerebras to avoid tool_use_failed errors
+    if provider in ("vllm", "groq", "cerebras"):
         client = instructor.from_litellm(litellm.completion, mode=instructor.Mode.JSON)
     else:
         client = instructor.from_litellm(litellm.completion)
