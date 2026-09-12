@@ -51,6 +51,9 @@ class DocumentRecord(BaseModel):
 
     # Identity
     document_title: str = Field(description="Document title or inferred name")
+    document_type: Optional[str] = Field(
+        default=None, description="The inferred type of the document (e.g. Invoice, Receipt, Contract, Report)"
+    )
     primary_party: Optional[str] = Field(
         default=None, description="Primary organization, vendor, or individual"
     )
@@ -141,6 +144,9 @@ class ExtractionResult(BaseModel):
     """
 
     document_title: str = Field(description="Document title or inferred name")
+    document_type: Optional[str] = Field(
+        default=None, description="The inferred type of the document (e.g. Invoice, Receipt, Contract)"
+    )
     primary_party: Optional[str] = Field(
         default=None, description="Primary organization, vendor, or individual"
     )
