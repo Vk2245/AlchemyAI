@@ -127,8 +127,9 @@ def run_pipeline(
         if provider == "local" and "gemini" in str(provider).lower():
             report_provider = "gemini" # attempt to escalate
             
+        evidence_content = evidence.get("full_markdown") or evidence.get("full_text", "")
         report_md = generate_ai_narrative_report(
-            evidence_text=evidence.get("full_markdown", evidence.get("full_text", "")),
+            evidence_text=evidence_content,
             record=record_dict,
             risk_flags=risk_summary.get("detected_risks", []),
             agent_log=agent_log,

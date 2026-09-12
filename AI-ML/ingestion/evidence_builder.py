@@ -27,8 +27,8 @@ def build_evidence(
     and a content hash for deduplication.
     """
     pdf_path_obj = Path(pdf_path)
-    full_text = "\n\n".join(p["raw_text"] for p in pages)
-    full_markdown = "\n\n".join(p.get("markdown", p["raw_text"]) for p in pages)
+    full_text = "\n\n".join(p.get("raw_text", "") for p in pages)
+    full_markdown = "\n\n".join(p.get("markdown") or p.get("raw_text", "") for p in pages)
 
     # Count totals
     total_chars = sum(p["char_count"] for p in pages)
