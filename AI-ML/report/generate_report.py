@@ -59,13 +59,30 @@ Agent Logs: {json.dumps(agent_log or [])}
 
     # Force using a powerful model for report generation if possible (e.g. gemini/claude/gpt-4)
     # We will pass provider down, or fallback to the standard get_completion logic
-    response = get_completion(
-        prompt=user_prompt,
-        system_prompt=sys_prompt,
-        provider=provider,
-        temperature=0.3
-    )
-    return response
+    try:
+        response = get_completion(
+            prompt=user_prompt,
+            system_prompt=sys_prompt,
+            provider=provider,
+            temperature=0.3
+        )
+        return response
+    except Exception as e:
+        print(f"  [Report] Narrative generation failed with {provider}: {e}")
+        if provider != "gemini":
+            print("  [Report] Escalating to Gemini...")
+            try:
+                response = get_completion(
+                    prompt=user_prompt,
+                    system_prompt=sys_prompt,
+                    provider="gemini",
+                    temperature=0.3
+                )
+                return response
+            except Exception as e2:
+                print(f"  [Report] Gemini fallback also failed: {e2}")
+        
+        return "The provided submission contains no discernible content, financial figures, dates, or risk indicators. Consequently, no substantive analysis can be generated at this time."
 
 
 def generate_report_markdown(

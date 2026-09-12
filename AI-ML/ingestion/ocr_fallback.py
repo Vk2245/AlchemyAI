@@ -20,6 +20,8 @@ import pymupdf
 import requests
 import litellm
 
+from config.settings import GEMINI_MODEL
+
 # Try to import pytesseract, but allow fallback if not installed
 try:
     import pytesseract
@@ -114,12 +116,37 @@ class OCRFallbackChain:
             }
         ]
 
-        # Tier 3: Gemini Vision
+        # Tier 3: Groq Vision (Super fast)
         try:
+            groq_api_key = os.getenv("GROQ_API_KEY", "")
+            if groq_api_key:
+                print("  [OCR Tier 3] Trying Groq Vision...")
+                response = litellm.completion(
+                    model="groq/llama-3.2-11b-vision-preview",
+                    messages=messages,
+                    temperature=0.1,
+                    api_key=groq_api_key,
+                )
+                content = response.choices[0].message.content
+                try:
+                    clean_json = content.replace("```json", "").replace("```", "").strip()
+                    data = json.loads(clean_json)
+                    return {
+                        "text": data.get("extracted_text", ""),
+                        "tier": "groq_vision",
+                        "fraud_flags": [data.get("fraud_reason")] if data.get("logo_fraud_flag") else []
+                    }
+                except json.JSONDecodeError:
+                    return {"text": content, "tier": "groq_vision", "fraud_flags": []}
+        except Exception as e:
+            print(f"  [OCR Tier 3] Groq Vision failed: {e}")
+
+        # Tier 4: Gemini Vision
+        try:
+            print("  [OCR Tier 4] Trying Gemini Vision...")
             gemini_api_key = os.getenv("GEMINI_API_KEY", "")
-            gemini_model = os.getenv("GEMINI_MODEL", "gemini/gemini-1.5-flash")
             response = litellm.completion(
-                model=gemini_model,
+                model=GEMINI_MODEL,
                 messages=messages,
                 temperature=0.1,
                 api_key=gemini_api_key,
@@ -136,7 +163,7 @@ class OCRFallbackChain:
             except json.JSONDecodeError:
                 return {"text": content, "tier": "gemini_vision", "fraud_flags": []}
         except Exception as e:
-            print(f"  [OCR Tier 3] Gemini Vision failed: {e}")
+            print(f"  [OCR Tier 4] Gemini Vision failed: {e}")
             return {"text": "", "tier": "failed", "fraud_flags": []}
 
 
