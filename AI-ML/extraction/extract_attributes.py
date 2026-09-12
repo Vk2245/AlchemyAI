@@ -114,10 +114,13 @@ def extraction_to_record(
     """
     record = DocumentRecord(
         document_title=extraction.document_title,
+        document_type=extraction.document_type,
         primary_party=extraction.primary_party,
         document_date=extraction.document_date,
         summary=extraction.summary,
         entities=extraction.entities,
+        financial_summary=extraction.financial_summary,
+        key_dates=extraction.key_dates,
         source_file=evidence.get("source_file"),
         content_hash=evidence.get("content_hash"),
         extracted_at=datetime.now(timezone.utc).isoformat(),
