@@ -195,7 +195,7 @@ async def process_document(
                         log("IMPORTING PDF PIPELINE")
                         from pipeline.run import run_pipeline
                         log("INITIALIZING PDF GENERATOR")
-                        provider_to_use = "groq" if mode == "online" else DEFAULT_PROVIDER
+                        provider_to_use = DEFAULT_PROVIDER
                         gen = run_pipeline(pdf_path, provider=provider_to_use, execution_mode=mode)
                     
                     log("STARTING GENERATOR LOOP")
