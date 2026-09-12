@@ -187,7 +187,7 @@ async def process_document(
                 log("THREAD STARTED")
                 try:
                     if is_excel_mode:
-                        log("IMPORTING EXCEL PIPELINE")
+                        log("IMPORTING EXCEL PIPELINE (POLARS VERSION)")
                         from pipeline.unilog_enrichment import process_unilog_catalogue
                         log("INITIALIZING EXCEL GENERATOR")
                         gen = process_unilog_catalogue(pdf_path)
