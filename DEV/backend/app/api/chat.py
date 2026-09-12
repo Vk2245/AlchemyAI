@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.database import (
@@ -196,7 +196,7 @@ async def get_chat_history(
         select(ChatMessage.conversation_id)
         .where(ChatMessage.user_id == user.id)
         .group_by(ChatMessage.conversation_id)
-        .order_by(ChatMessage.created_at.desc())
+        .order_by(func.max(ChatMessage.created_at).desc())
     )
     conv_ids = result.scalars().all()
 
