@@ -59,23 +59,37 @@ def _serialize_record(rec: dict) -> str:
 
     # Include key attributes from record_data if available
     record_data = rec.get("record_data", {})
+    
+    # Defensive: record_data might be a JSON string instead of a dict
+    if isinstance(record_data, str):
+        try:
+            import json
+            record_data = json.loads(record_data)
+        except (json.JSONDecodeError, TypeError):
+            record_data = {}
+    
+    if not isinstance(record_data, dict):
+        record_data = {}
+    
     if isinstance(record_data, dict):
         if record_data.get("summary"):
             lines.append(f"  Summary: {record_data['summary']}")
             
-        if record_data.get("financial_summary"):
+        if record_data.get("financial_summary") and isinstance(record_data["financial_summary"], dict):
             fs = record_data["financial_summary"]
             lines.append(f"  Financials: Revenue {fs.get('total_revenue', 'N/A')}, Net Income {fs.get('net_income', 'N/A')}, Total Assets {fs.get('total_assets', 'N/A')}, Total Liabilities {fs.get('total_liabilities', 'N/A')}")
             
-        if record_data.get("key_dates"):
+        if record_data.get("key_dates") and isinstance(record_data["key_dates"], list):
             lines.append("  Key Dates:")
             for kd in record_data["key_dates"]:
-                lines.append(f"    - {kd.get('date', 'Unknown')}: {kd.get('event', 'Unknown')} ({kd.get('importance', 'N/A')})")
+                if isinstance(kd, dict):
+                    lines.append(f"    - {kd.get('date', 'Unknown')}: {kd.get('event', 'Unknown')} ({kd.get('importance', 'N/A')})")
                 
-        if record_data.get("entities"):
+        if record_data.get("entities") and isinstance(record_data["entities"], list):
             lines.append("  Key Entities:")
             for ent in record_data["entities"]:
-                lines.append(f"    - {ent.get('name', 'Unknown')} ({ent.get('type', 'Unknown')})")
+                if isinstance(ent, dict):
+                    lines.append(f"    - {ent.get('name', 'Unknown')} ({ent.get('type', 'Unknown')})")
 
         # Handle Standard PDF Records legacy attributes
         attrs = record_data.get("attributes", record_data.get("extracted_attributes", []))
