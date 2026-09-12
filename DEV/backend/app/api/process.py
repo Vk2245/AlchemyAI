@@ -280,6 +280,7 @@ async def process_document(
                                     "primary_party": "Multiple Brands",
                                     "document_type": "Multiple",
                                     "category": "Bulk Upload",
+                                    "summary": f"Successfully parsed and structured {category_record['total_items']} items from the uploaded bulk catalog spreadsheet into {len(final_grouped_data)} standardized categories.",
                                     "record_confidence": 0.95,
                                     "validation_passed": True,
                                     "record_data": category_record

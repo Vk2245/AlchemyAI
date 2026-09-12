@@ -109,21 +109,21 @@ def process_unilog_catalogue(input_file: str):
     total_items = len(df)
     
     # ---------------------------------------------------------
-    # Project DEMO FIX: Free APIs (Groq/Gemini) will instantly 
-    # crash with RateLimitError (429) if we process 1000 items.
-    # We slice it to 15 items so the demo works smoothly!
+    # Processing 50 items for demonstration to avoid API Rate Limits (429)
+    # on free Groq/Gemini tiers.
     # ---------------------------------------------------------
-    df = df.head(15)
+    df = df.head(50)
     
-    yield {"progress": 10, "message": f"Loaded {total_items} items (Demo mode: processing top 15 to respect Free API limits). Starting enrichment..."}
+    yield {"progress": 10, "message": f"Loaded {total_items} items (Demo mode: processing top 50 to respect Free API limits). Starting REAL LLM enrichment..."}
     
     results = []
-    
     import concurrent.futures
     import time
+    from pydantic import BaseModel
+    from config.llm_client import get_structured_output
     
     # Reduced workers to avoid hammering free tier APIs
-    MAX_WORKERS = 1
+    MAX_WORKERS = 2
     MAX_RETRIES = 2
     
     # Filter valid rows first
@@ -143,6 +143,7 @@ def process_unilog_catalogue(input_file: str):
     if not desc_col:
         yield {"progress": -1, "message": f"Error: Could not find a description column in the uploaded Excel file. Columns found: {list(df.columns)[:5]}"}
         return
+        
     for idx, row in enumerate(df.iter_rows(named=True)):
         raw_desc = row.get(desc_col, "")
         if raw_desc is None or not str(raw_desc).strip():
@@ -151,30 +152,54 @@ def process_unilog_catalogue(input_file: str):
         
     total_valid = len(valid_rows)
     
+    class ExcelRowResult(BaseModel):
+        Category: str
+        Description: str
+        Material: str
+        Size: str
+        Confidence: float
+    
     def process_single_item(item):
-        time.sleep(0.1)  # tiny delay for UI feel
         idx, raw_desc = item
         
         # -------------------------------------------------------------
-        # Project PANIC MODE: MOCK THE LLM RESPONSE!
-        # Bypass API limits entirely. Returns instant success.
+        # Call the ACTUAL LLM to structure this row
         # -------------------------------------------------------------
-        from pydantic import BaseModel
+        prompt = f"Extract structured product attributes from this messy catalog description:\n\n{raw_desc}"
+        system = "You are an industrial data extraction assistant. Categorize the item, clean up the description, and extract Material and Size if present. Output valid JSON."
         
-        # Build fake Extracted JSON
-        import random
-        categories = ["Plumbing", "Electrical", "Fasteners", "Tools", "Safety"]
-        
-        result_row = {
-            "INPUT - Part_Desc": raw_desc,
-            "Category": random.choice(categories),
-            "Description": f"Standard industrial part for {raw_desc[:20]}...",
-            "Material": "Brass/Steel",
-            "Size": "Standard",
-            "Confidence": 0.98
-        }
-        
-        return result_row
+        try:
+            # We use 'gemini' as provider for stable excel processing if default is slow
+            res = get_structured_output(
+                prompt=prompt,
+                response_model=ExcelRowResult,
+                system_prompt=system,
+                provider="gemini",
+                temperature=0.1
+            )
+            
+            result_row = {
+                "Item_ID": f"PROD_{idx:04d}",
+                "INPUT - Part_Desc": raw_desc,
+                "Category": res.Category,
+                "Description": res.Description,
+                "Material": res.Material,
+                "Size": res.Size,
+                "Confidence": res.Confidence
+            }
+            return result_row
+            
+        except Exception as e:
+            # Fallback if API fails for this specific row
+            return {
+                "Item_ID": f"PROD_{idx:04d}",
+                "INPUT - Part_Desc": raw_desc,
+                "Category": "Failed",
+                "Description": f"Failed to extract: {str(e)[:50]}",
+                "Material": "N/A",
+                "Size": "N/A",
+                "Confidence": 0.0
+            }
 
     results = []
     processed_count = 0
