@@ -169,12 +169,12 @@ def process_unilog_catalogue(input_file: str):
         system = "You are an industrial data extraction assistant. Categorize the item, clean up the description, and extract Material and Size if present. Output valid JSON."
         
         try:
-            # We use 'gemini' as provider for stable excel processing if default is slow
+            # We use 'groq' for blazing fast extraction, fallback to gemini handled internally
             res = get_structured_output(
                 prompt=prompt,
                 response_model=ExcelRowResult,
                 system_prompt=system,
-                provider="gemini",
+                provider="groq",
                 temperature=0.1
             )
             
