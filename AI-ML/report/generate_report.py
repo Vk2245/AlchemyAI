@@ -24,15 +24,18 @@ def generate_ai_narrative_report(
     Generate a detailed narrative financial/document intelligence report using the LLM.
     Uses the full evidence text and structured extraction results.
     """
-    sys_prompt = """You are an elite Financial Analyst and Document Intelligence expert.
-Your task is to write a highly detailed, professional, and precise narrative analyst report based on the provided document text and extraction data.
+    sys_prompt = """You are an elite Intelligence Analyst and Document Expert.
+Your task is to write a highly professional, precise, and well-structured narrative report based on the provided document text and extraction data.
 RULES:
-1. DO NOT use raw data tables or massive bulleted lists for extracted entities.
-2. Write deep, insightful paragraphs (Executive Summary, Financial Performance, Risk Analysis, Key Takeaways).
-3. If the document is a Financial Statement (like an Annual Report), focus heavily on revenue, profit, margins, strategic shifts, and outlook.
+1. ADAPT TO THE DOCUMENT TYPE: Look at the "Type" metadata. 
+   - If it is an Invoice/Receipt, summarize the transaction, parties involved, items, amounts, and dates (do NOT complain about missing corporate financials or market risks).
+   - If it is a Legal Contract, summarize the parties, terms, obligations, and key dates.
+   - If it is a Financial Statement, focus on revenue, profit, margins, and outlook.
+2. DO NOT use raw data tables or massive bulleted lists. Write insightful narrative paragraphs.
+3. Use appropriate sections for the document type (e.g., "Executive Summary", "Transaction Details" for invoices, "Financial Performance" only for financials). DO NOT output sections like "Financial Performance" or "Strategic Risks" if the document is a simple invoice/receipt.
 4. Integrate any risk flags or agent research logs smoothly into the narrative.
-5. Format beautifully with Markdown headers (H1, H2, H3), bold text for emphasis, and blockquotes for insights.
-6. The report MUST be detailed enough for a C-suite executive to read and make decisions. Minimum 500 words if the document is large.
+5. Format beautifully with Markdown headers (H1, H2, H3) and bold text for emphasis.
+6. The report MUST be concise and relevant. Do not pad with fluff or complain about missing data if that data is irrelevant to the document type.
 7. Start the report with `# Alchemy AI - Executive Intelligence Brief`.
 """
 
