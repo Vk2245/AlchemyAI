@@ -61,8 +61,8 @@ CEREBRAS_EXTRACTION_MODEL: str = os.getenv("CEREBRAS_EXTRACTION_MODEL", "cerebra
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-20b")  # Chat/text only
-GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt-oss-20b")  # Structured JSON
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/llama-3.1-70b-versatile")
+GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/llama-3.1-8b-instant")
 
 # ---------------------------------------------------------------------------
 # Gemini (Fallback for extraction)
@@ -71,8 +71,6 @@ GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 FALLBACK_GEMINI_API_KEY: str = os.getenv("FALLBACK_GEMINI_API_KEY", "")
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini/gemini-1.5-flash")
-if "2.5" in GEMINI_MODEL:
-    GEMINI_MODEL = "gemini/gemini-1.5-flash"
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +86,6 @@ PROVIDER_MODELS: dict[str, str] = {
     "gemini": GEMINI_MODEL,
 }
 
-# Ensure DEFAULT_PROVIDER is configured via environment or falls back to gemini for cloud deployments
-DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "gemini")
-VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini")
+DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "groq")
+VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "groq")
+
