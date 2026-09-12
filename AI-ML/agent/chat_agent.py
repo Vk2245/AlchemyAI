@@ -367,7 +367,8 @@ async def chat_with_records_stream(
             if "<think>" in buffer:
                 parts = buffer.split("<think>", 1)
                 if parts[0]:
-                    yield parts[0]
+                    cleaned = parts[0].replace("*", "").replace("`", "")
+                    yield cleaned
                 is_thinking = True
                 buffer = parts[1]
             else:
@@ -375,10 +376,12 @@ async def chat_with_records_stream(
                 # we hold back if a '<' is near the end.
                 last_lt = buffer.rfind("<")
                 if last_lt != -1 and last_lt >= len(buffer) - 8:
-                    yield buffer[:last_lt]
+                    cleaned = buffer[:last_lt].replace("*", "").replace("`", "")
+                    yield cleaned
                     buffer = buffer[last_lt:]
                 else:
-                    yield buffer
+                    cleaned = buffer.replace("*", "").replace("`", "")
+                    yield cleaned
                     buffer = ""
 
         if is_thinking:
@@ -395,7 +398,8 @@ async def chat_with_records_stream(
 
     if not is_thinking and buffer:
         if "<think" not in buffer:
-            yield buffer
+            cleaned = buffer.replace("*", "").replace("`", "")
+            yield cleaned
 
 
 # ---------------------------------------------------------------------------

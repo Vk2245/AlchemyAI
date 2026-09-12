@@ -69,14 +69,14 @@ def run_pipeline(
             return
 
         # Stage 3: Fraud Audit
-        yield _yield_progress(40, "Running Fraud Audit...")
+        yield _yield_progress(40, "Running Multi-Tier Fraud Audit...")
 
         # Stage 4: Entity Extraction
-        yield _yield_progress(55, "Extracting entities (NER)...")
+        yield _yield_progress(55, "Performing Adaptive NER and Data Extraction...")
         record = extract_record_from_evidence(evidence, provider=provider)
         
         # Stage 5: Classification
-        yield _yield_progress(70, "Classifying Document...")
+        yield _yield_progress(70, "Dynamically Classifying Document...")
         
         # Phase 6 & 7: Validation & Scoring
         from confidence.score_record import score_record
@@ -84,11 +84,11 @@ def run_pipeline(
         record_dict = record.model_dump()
 
         # Stage 6: Agent Research
-        yield _yield_progress(80, "Running Agent Research...")
+        yield _yield_progress(80, "Cross-Referencing and Agent Research...")
         # Risk Radar will invoke it if needed
         
         # Stage 7: Risk Radar
-        yield _yield_progress(90, "Running Risk Radar...")
+        yield _yield_progress(90, "Evaluating Adaptive Risk & Compliance...")
         risk_res = detect_risk(record)
         risk_summary = {
             "overall_risk_level": risk_res["overall_risk_level"],
