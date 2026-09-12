@@ -19,11 +19,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the backend requirements.txt
-COPY DEV/backend/requirements.txt .
+# Copy both requirements files
+COPY DEV/backend/requirements.txt ./requirements-backend.txt
+COPY AI-ML/requirements.txt ./requirements-aiml.txt
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (backend + AI-ML)
+RUN pip install --no-cache-dir -r requirements-backend.txt -r requirements-aiml.txt
 
 # Copy the AI-ML directory (needed by backend pipeline)
 COPY AI-ML/ ./AI-ML/
