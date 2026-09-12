@@ -55,17 +55,21 @@ class OCRFallbackChain:
             except Exception as e:
                 print(f"  [OCR Tier 1] Tesseract failed: {e}")
 
-        # Tier 2: OCR.space API
-        if self.ocr_space_key:
+        # Tier 2: OCR.space (Cloud Free API)
+        if execution_mode == "online":
             try:
                 print("  [OCR Tier 2] Attempting OCR.space...")
-                payload = {
-                    "apikey": self.ocr_space_key,
-                    "language": lang[:3], # e.g. 'eng'
-                    "isOverlayRequired": False
-                }
-                files = {"file": ("image.png", image_bytes, "image/png")}
-                res = requests.post("https://api.ocr.space/parse/image", data=payload, files=files, timeout=10)
+                ocr_key = os.getenv("OCR_SPACE_API_KEY", "K86348633988957")
+                res = requests.post(
+                    "https://api.ocr.space/parse/image",
+                    files={"file": ("image.png", image_bytes, "image/png")},
+                    data={
+                        "apikey": ocr_key,
+                        "language": "eng",
+                        "filetype": "png",
+                    },
+                    timeout=15
+                )
                 if res.status_code == 200:
                     data = res.json()
                     if not data.get("IsErroredOnProcessing"):
