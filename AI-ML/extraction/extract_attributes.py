@@ -81,39 +81,21 @@ snippet where you found it."""
             system_prompt=SYSTEM_PROMPT,
             provider=provider,
         )
-        
-        # Fallback if local model hallucinates an empty output
-        if not result.document_title or result.document_title.lower() == "untitled document" or not result.entities:
-            if provider != "gemini":
-                print("  [NER] Local model returned empty result. Escalating to Gemini...")
-                result = get_structured_output(
-                    prompt=prompt,
-                    response_model=ExtractionResult,
-                    system_prompt=SYSTEM_PROMPT,
-                    provider="gemini",
-                )
     except Exception as e:
         print(f"Extraction failed or hit token limit: {e}")
-        if provider != "gemini":
-            print("  [NER] Exception caught. Escalating to Gemini...")
-            try:
-                result = get_structured_output(
-                    prompt=prompt,
-                    response_model=ExtractionResult,
-                    system_prompt=SYSTEM_PROMPT,
-                    provider="gemini",
-                )
-                return result
-            except Exception as gemini_e:
-                print(f"  [NER] Gemini fallback also failed: {gemini_e}")
-                
+        error_msg = str(e)
+        if "api_key" in error_msg.lower() or "authentication" in error_msg.lower() or "401" in error_msg:
+            summary_msg = "API KEY ERROR: Your Gemini or Groq API Key is missing or invalid in the Railway Variables. Please set a valid API key."
+        else:
+            summary_msg = "The AI model failed to extract structured data from this document due to length limits or formatting errors."
+            
         # Return a fallback empty result so the pipeline doesn't crash
         result = ExtractionResult(
             document_title="Unknown Document (Extraction Failed)",
             document_type="Unknown",
             primary_party="Unknown",
             document_date="Unknown",
-            summary="The AI model failed to extract structured data from this document due to length limits or formatting errors.",
+            summary=summary_msg,
             entities=[],
         )
 
@@ -132,7 +114,6 @@ def extraction_to_record(
     """
     record = DocumentRecord(
         document_title=extraction.document_title,
-        document_type=extraction.document_type,
         primary_party=extraction.primary_party,
         document_date=extraction.document_date,
         summary=extraction.summary,

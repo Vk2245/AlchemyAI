@@ -82,6 +82,10 @@ Agent Logs: {json.dumps(agent_log or [])}
             except Exception as e2:
                 print(f"  [Report] Gemini fallback also failed: {e2}")
         
+        error_msg = f"{e} {e2}" if 'e2' in locals() else str(e)
+        if "api_key" in error_msg.lower() or "authentication" in error_msg.lower() or "401" in error_msg:
+            return "# API Key Error\nYour Gemini or Groq API Key is either missing or invalid in the Railway environment variables. The AI cannot generate a report without a valid API key. Please configure `GEMINI_API_KEY`."
+        
         return "The provided submission contains no discernible content, financial figures, dates, or risk indicators. Consequently, no substantive analysis can be generated at this time."
 
 
