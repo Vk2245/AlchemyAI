@@ -63,39 +63,6 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
             {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
         ]
 
-    # Active Fallback Configuration (litellm will automatically try these if the primary fails)
-    fallbacks = []
-    
-    # Gemini provider: fallback to secondary Gemini key, and then Groq
-    if provider == "gemini":
-        if FALLBACK_GEMINI_API_KEY:
-            fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": FALLBACK_GEMINI_API_KEY})
-        if GROQ_API_KEY:
-            fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
-    else:
-        # For non-gemini providers, build the chain: Cerebras -> Groq -> Gemini
-        # If primary is Cerebras, fallback to Groq, then Gemini
-        if provider == "cerebras":
-            if GROQ_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
-            if GEMINI_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
-        # If primary is Groq, fallback to Gemini
-        elif provider == "groq":
-            if GEMINI_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
-        # If vLLM, fallback to Cerebras -> Groq -> Gemini
-        elif provider == "vllm":
-            if CEREBRAS_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["cerebras"], "api_key": CEREBRAS_API_KEY})
-            if GROQ_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["groq"], "api_key": GROQ_API_KEY})
-            if GEMINI_API_KEY:
-                fallbacks.append({"model": PROVIDER_MODELS["gemini"], "api_key": GEMINI_API_KEY})
-        
-    if fallbacks:
-        kwargs["fallbacks"] = fallbacks
-
     return kwargs
 
 
@@ -120,22 +87,43 @@ def get_completion(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    model = _get_model_string(provider)
-    kwargs = _build_kwargs(provider)
+    providers_to_try = [provider]
+    if provider == "cerebras":
+        if GROQ_API_KEY: providers_to_try.append("groq")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "groq":
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "vllm":
+        if CEREBRAS_API_KEY: providers_to_try.append("cerebras")
+        if GROQ_API_KEY: providers_to_try.append("groq")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "gemini":
+        if GROQ_API_KEY: providers_to_try.append("groq")
 
-    response = litellm.completion(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        **kwargs,
-    )
-
-    if not response or not hasattr(response, "choices") or len(response.choices) == 0:
-        return ""
+    last_error = None
+    for current_provider in providers_to_try:
+        model = _get_model_string(current_provider)
+        kwargs = _build_kwargs(current_provider)
         
-    content = response.choices[0].message.content
-    return content if content else ""
+        try:
+            response = litellm.completion(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs,
+            )
+
+            if not response or not hasattr(response, "choices") or len(response.choices) == 0:
+                continue
+                
+            content = response.choices[0].message.content
+            return content if content else ""
+        except Exception as e:
+            print(f"  [Completion] Provider '{current_provider}' failed: {e}")
+            last_error = e
+
+    raise last_error if last_error else Exception("All providers failed to return a response.")
 
 
 async def get_completion_stream(
@@ -153,22 +141,43 @@ async def get_completion_stream(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    model = _get_model_string(provider)
-    kwargs = _build_kwargs(provider)
+    providers_to_try = [provider]
+    if provider == "cerebras":
+        if GROQ_API_KEY: providers_to_try.append("groq")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "groq":
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "vllm":
+        if CEREBRAS_API_KEY: providers_to_try.append("cerebras")
+        if GROQ_API_KEY: providers_to_try.append("groq")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "gemini":
+        if GROQ_API_KEY: providers_to_try.append("groq")
 
-    response = await litellm.acompletion(
-        model=model,
-        messages=messages,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        stream=True,
-        **kwargs,
-    )
+    last_error = None
+    for current_provider in providers_to_try:
+        model = _get_model_string(current_provider)
+        kwargs = _build_kwargs(current_provider)
+        
+        try:
+            response = await litellm.acompletion(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=True,
+                **kwargs,
+            )
+            async for chunk in response:
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    yield delta
+            return
+        except Exception as e:
+            print(f"  [Stream] Provider '{current_provider}' failed: {e}")
+            last_error = e
 
-    async for chunk in response:
-        delta = chunk.choices[0].delta.content
-        if delta:
-            yield delta
+    raise last_error if last_error else Exception("All providers failed to stream.")
 
 
 def get_structured_output(
