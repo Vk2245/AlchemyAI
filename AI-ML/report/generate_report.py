@@ -179,7 +179,23 @@ def generate_report_markdown(
     lines.append("")
     
     entities = record.get("entities", [])
-    if entities:
+    record_data = record.get("record_data", {})
+    categories = record_data.get("categories", [])
+    
+    if categories:
+        lines.append(f"> **Bulk Processed**: Analyzed {record_data.get('total_items', 0)} items from {record_data.get('source_file', 'upload')}.")
+        lines.append("")
+        for cat in categories:
+            lines.append(f"### {cat['name']} ({cat['item_count']} items)")
+            lines.append("| Item ID | Description | Confidence |")
+            lines.append("|---|---|---|")
+            for item in cat.get("sample_items", []):
+                item_id = item.get("Item_ID", "N/A")
+                desc = item.get("INPUT - Part_Desc", "")[:60]
+                conf = item.get("Confidence", 0.0)
+                lines.append(f"| {item_id} | {desc}... | {conf:.0%} |")
+            lines.append("")
+    elif entities:
         lines.append("| Entity Type | Extracted Value | Confidence | Source Snippet |")
         lines.append("|---|---|---|---|")
         for ent in entities:

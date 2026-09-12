@@ -84,6 +84,7 @@ def run_pipeline(
         # Phase 6 & 7: Validation & Scoring
         from confidence.score_record import score_record
         record = score_record(record)
+        record.validation_passed = record.record_confidence >= 0.4
         record_dict = record.model_dump()
 
         # Stage 6: Agent Research
