@@ -13,7 +13,7 @@ python-toon>=0.1.0
 # Structured data
 pydantic>=2.7.0
 polars>=1.0.0
-fastexcel>=0.11.0
+openpyxl>=3.1.0
 
 # Embeddings and vector store
 chromadb>=0.5.0

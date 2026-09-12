@@ -1,6 +1,8 @@
-import pandas as pd
+import polars as pl
 import json
 import os
+import re
+import ast
 from pathlib import Path
 
 # Paths

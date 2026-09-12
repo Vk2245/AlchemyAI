@@ -101,7 +101,7 @@ def process_unilog_catalogue(input_file: str):
         if path.suffix.lower() == '.csv':
             df = pl.read_csv(path)
         else:
-            df = pl.read_excel(path)
+            df = pl.read_excel(path, engine="openpyxl")
     except Exception as e:
         yield {"progress": -1, "message": f"Failed to read Excel: {e}"}
         return
