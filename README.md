@@ -8,7 +8,7 @@
 
 **Adaptive AI-Powered Document Intelligence & Product Data Platform**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Railway-blueviolet?style=for-the-badge)](https://alchemyai.up.railway.app)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://alchemyai.vercel.app/)
 [![Next.js](https://img.shields.io/badge/Next.js_14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Agent_AI-orange?style=for-the-badge)](https://langchain-ai.github.io/langgraph/)
