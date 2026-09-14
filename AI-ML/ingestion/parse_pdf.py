@@ -30,22 +30,11 @@ def extract_pages(pdf_path: str) -> list[dict[str, Any]]:
     doc = pymupdf.open(pdf_path)
     pages: list[dict[str, Any]] = []
 
-    # Get markdown for all pages at once (pymupdf4llm works on full doc)
-    try:
-        full_markdown = pymupdf4llm.to_markdown(pdf_path)
-    except Exception:
-        full_markdown = ""
-    # Split markdown by page breaks (pymupdf4llm inserts form-feed or page markers)
-    md_pages = _split_markdown_pages(full_markdown, len(doc))
-
     for page_num in range(len(doc)):
         page = doc[page_num]
         raw_text = page.get_text("text")
-        md_text = md_pages[page_num] if page_num < len(md_pages) else ""
 
-        # Use markdown text as fallback if raw text is empty
-        # (pymupdf4llm sometimes extracts text from scanned PDFs via built-in OCR)
-        effective_text = raw_text if raw_text.strip() else md_text
+        effective_text = raw_text
 
         # Collect image references from the page
         image_list = page.get_images(full=True)
@@ -61,7 +50,7 @@ def extract_pages(pdf_path: str) -> list[dict[str, Any]]:
         page_data = {
             "page_number": page_num + 1,
             "raw_text": effective_text,
-            "markdown": md_text or raw_text,
+            "markdown": raw_text,
             "char_count": len(effective_text.strip()),
             "has_images": len(image_list) > 0,
             "image_refs": image_refs,

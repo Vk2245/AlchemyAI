@@ -71,7 +71,7 @@ class OCRFallbackChain:
                         "language": "eng",
                         "filetype": "png",
                     },
-                    timeout=15
+                    timeout=25
                 )
                 if res.status_code == 200:
                     data = res.json()
@@ -126,6 +126,7 @@ class OCRFallbackChain:
                     model="groq/qwen/qwen3.6-27b",
                     messages=messages,
                     temperature=0.1,
+                    max_tokens=800,
                     api_key=groq_api_key,
                 )
                 content = response.choices[0].message.content
@@ -189,13 +190,18 @@ def process_pages_with_ocr(
     pdf_path: str,
     pages: list[dict[str, Any]],
     execution_mode: str = "online",
+    status_callback=None
 ) -> list[dict[str, Any]]:
     
     chain = OCRFallbackChain()
 
-    for page in pages:
+    for i, page in enumerate(pages):
         if needs_ocr(page):
-            print(f"  Page {page['page_number']}: low text ({page['char_count']} chars), running 4-Tier OCR...")
+            msg = f"Running OCR on page {page['page_number']} of {len(pages)}..."
+            print(f"  {msg}")
+            if status_callback:
+                status_callback(25 + int(10 * (i / len(pages))), msg)
+
             doc = pymupdf.open(str(pdf_path))
             pdf_page = doc[page["page_number"] - 1]
             pix = pdf_page.get_pixmap(dpi=300)
