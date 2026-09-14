@@ -82,7 +82,7 @@ def _run_groq_vision(image_path: str) -> str:
     }
     
     payload = {
-        "model": "qwen-2.5-vl-32b-instruct",
+        "model": "qwen/qwen3.6-27b",
         "messages": [
             {
                 "role": "user",

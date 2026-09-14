@@ -123,7 +123,7 @@ class OCRFallbackChain:
             if groq_api_key:
                 print("  [OCR Tier 3] Trying Groq Vision (qwen3.6-27b)...")
                 response = litellm.completion(
-                    model="groq/qwen-2.5-vl-32b-instruct",
+                    model="groq/qwen/qwen3.6-27b",
                     messages=messages,
                     temperature=0.1,
                     api_key=groq_api_key,
