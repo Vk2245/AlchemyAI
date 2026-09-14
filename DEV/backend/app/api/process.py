@@ -214,7 +214,13 @@ async def process_document(
 
             # No padding needed, let the browser buffer normally or flush if configured properly
             while True:
-                update = await q.get()
+                try:
+                    update = await asyncio.wait_for(q.get(), timeout=15.0)
+                except asyncio.TimeoutError:
+                    # Send a keep-alive ping to prevent proxy/load balancer timeout (e.g. Railway 100s timeout)
+                    yield ": ping\n\n"
+                    continue
+
                 if update is None:
                     break
                     

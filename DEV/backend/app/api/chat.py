@@ -50,7 +50,10 @@ async def _load_user_records(user_id: int, db: AsyncSession) -> list[dict]:
     result = await db.execute(
         select(Document, DocumentRecord)
         .outerjoin(DocumentRecord, DocumentRecord.document_id == Document.id)
-        .where(Document.owner_id == user_id)
+        .where(
+            Document.owner_id == user_id,
+            Document.status == "completed"
+        )
         .order_by(Document.uploaded_at.desc())
     )
     rows = result.all()
