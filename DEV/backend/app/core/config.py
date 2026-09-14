@@ -45,7 +45,7 @@ elif DATABASE_URL.startswith("postgresql://") and not DATABASE_URL.startswith("p
 
 SECRET_KEY: str = os.getenv("SECRET_KEY", "Alchemy AI-dev-secret-change-in-production")
 ALGORITHM: str = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
+ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "5256000"))
 HMAC_KEY: str = os.getenv("HMAC_KEY", "Alchemy AI-hmac-key-change-in-production")
 
 # CAPTCHA (Altcha — open-source, self-hosted, proof-of-work)
