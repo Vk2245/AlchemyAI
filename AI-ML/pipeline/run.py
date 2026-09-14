@@ -8,10 +8,12 @@ as Server-Sent Events (SSE) so the frontend can display a progress bar.
 
 import sys
 import time
+import os
 import requests
 from typing import Any, Generator
 
 from ingestion.parse_pdf import extract_pages
+from ingestion.parse_other import extract_txt_pages, extract_docx_pages
 from ingestion.ocr_fallback import process_pages_with_ocr
 from ingestion.evidence_builder import build_evidence
 from extraction.extract_attributes import extract_record_from_evidence
@@ -26,16 +28,13 @@ def trigger_erp_sync(record_dict: dict[str, Any]) -> dict[str, Any]:
     Mock ERP Webhook trigger (Agentic Workflow Orchestration).
     Sends the extracted JSON to a mock ERP endpoint.
     """
-    # In a real scenario, this would hit the FastAPI mock endpoint.
-    # We will simulate the network call success here.
     return {
         "status": "success",
         "message": f"Successfully synced Document '{record_dict.get('document_title')}' to ERP."
     }
 
-
 def run_pipeline(
-    pdf_path: str,
+    doc_path: str,
     provider: str = "gemini",
     execution_mode: str = "online",
 ) -> Generator[dict[str, Any], None, None]:
@@ -50,18 +49,34 @@ def run_pipeline(
 
     try:
         # Branch detection
-        branch_name = "Cloud API Pipeline (Gemini/Groq)" if execution_mode == "online" else "Local Edge Pipeline (vLLM)"
+        branch_name = "Cloud API Pipeline (Multi-Format)" if execution_mode == "online" else "Local Edge Pipeline (vLLM)"
         yield _yield_progress(5, f"Branch Selected: {branch_name}")
 
-        # Stage 1: Document Ingestion
-        yield _yield_progress(15, "Document Ingestion...")
-        pages = extract_pages(pdf_path)
-        
-        # Stage 2: OCR Fallback
-        yield _yield_progress(25, "Running OCR & Vision audit...")
-        pages = process_pages_with_ocr(pdf_path, pages, execution_mode=execution_mode)
+        ext = os.path.splitext(doc_path)[1].lower()
+        yield _yield_progress(10, f"Document Type Classification: {ext.upper().replace('.', '')}")
+
+        # Stage 1: Document Ingestion & Routing
+        if ext == ".txt":
+            yield _yield_progress(15, "Ingesting TXT...")
+            pages = extract_txt_pages(doc_path)
+        elif ext == ".docx":
+            yield _yield_progress(15, "Ingesting DOCX...")
+            pages = extract_docx_pages(doc_path)
+        elif ext in [".png", ".jpg", ".jpeg"]:
+            yield _yield_progress(15, "Ingesting Image directly to OCR...")
+            pages = [{"page_number": 1, "raw_text": "", "char_count": 0, "has_images": True}]
+        else: # PDF default
+            yield _yield_progress(15, "Ingesting PDF...")
+            pages = extract_pages(doc_path)
             
-        evidence = build_evidence(pdf_path, pages)
+        # Stage 2: OCR Fallback
+        if ext in [".png", ".jpg", ".jpeg"] or any(p.get("char_count", 0) < 50 for p in pages):
+            yield _yield_progress(25, "Running Parallel OCR & Vision Audit...")
+            pages = process_pages_with_ocr(doc_path, pages, execution_mode=execution_mode, status_callback=lambda p, m: _yield_progress(p, m))
+        else:
+            yield _yield_progress(35, "Skipping OCR (Text is embedded)")
+
+        evidence = build_evidence(doc_path, pages)
         
         # Check if empty or contains only garbage/punctuation
         import re
@@ -76,7 +91,7 @@ def run_pipeline(
 
         # Stage 4: Entity Extraction
         yield _yield_progress(55, "Performing Adaptive NER and Data Extraction...")
-        record = extract_record_from_evidence(evidence, provider=provider)
+        record = extract_record_from_evidence(evidence, provider="gemini") # Always use Gemini for structured JSON
         
         # Stage 5: Classification
         yield _yield_progress(70, "Dynamically Classifying Document...")
@@ -89,7 +104,6 @@ def run_pipeline(
 
         # Stage 6: Agent Research
         yield _yield_progress(80, "Cross-Referencing and Agent Research...")
-        # Risk Radar will invoke it if needed
         
         # Stage 7: Risk Radar
         yield _yield_progress(90, "Evaluating Adaptive Risk & Compliance...")
@@ -123,13 +137,8 @@ def run_pipeline(
             agent_log.append(erp_res["message"])
 
         # Stage 8: AI Narrative Report Generation
-        yield _yield_progress(95, "Generating AI Analyst Narrative Report...")
+        yield _yield_progress(95, "Generating Elite AI Analyst Narrative Report (120b Model)...")
         from report.generate_report import generate_ai_narrative_report
-        
-        # Determine best provider available, default to what's requested
-        report_provider = provider
-        if provider == "local" and "gemini" in str(provider).lower():
-            report_provider = "gemini" # attempt to escalate
             
         evidence_content = evidence.get("full_markdown") or evidence.get("full_text", "")
         report_md = generate_ai_narrative_report(
@@ -137,7 +146,7 @@ def run_pipeline(
             record=record_dict,
             risk_flags=risk_summary.get("detected_risks", []),
             agent_log=agent_log,
-            provider=report_provider
+            provider="cerebras" # Use 120b model as requested for best output
         )
 
         # Stage 9: Final Payload
@@ -161,12 +170,12 @@ def run_pipeline(
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python -m pipeline.run <pdf_path>")
+        print("Usage: python -m pipeline.run <doc_path>")
         sys.exit(1)
 
-    pdf_path = sys.argv[1]
+    doc_path = sys.argv[1]
     
-    for update in run_pipeline(pdf_path):
+    for update in run_pipeline(doc_path):
         prog = update["progress"]
         msg = update["message"]
         

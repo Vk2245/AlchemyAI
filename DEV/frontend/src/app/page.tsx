@@ -233,7 +233,7 @@ export default function Home() {
           transition={{ delay: 0.6 }}
           className="mt-4 flex items-center gap-4 text-sm"
         >
-          <span className="text-gray-400">No PDF?</span>
+          <span className="text-gray-400">No Document?</span>
           <Link
             href="/record/demo"
             className="text-[var(--accent-blue)] font-medium flex items-center gap-1 hover:underline underline-offset-4"

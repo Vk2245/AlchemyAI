@@ -49,8 +49,12 @@ export default function UploadZone({
 
   const handleFileSelection = (selectedFile: File) => {
     setError(null);
-    if (selectedFile.type !== "application/pdf") {
-      setError("Only PDF files are accepted.");
+    const validTypes = ["application/pdf", "image/png", "image/jpeg", "text/plain", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase();
+    const validExtensions = ["pdf", "png", "jpg", "jpeg", "txt", "docx"];
+    
+    if (!validTypes.includes(selectedFile.type) && (!extension || !validExtensions.includes(extension))) {
+      setError("Only PDF, PNG, JPG, TXT, and DOCX files are accepted.");
       return;
     }
     if (selectedFile.size > 50 * 1024 * 1024) {
@@ -126,7 +130,7 @@ export default function UploadZone({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="application/pdf"
+            accept=".pdf,.png,.jpg,.jpeg,.txt,.docx"
             className="hidden"
           />
 
@@ -149,7 +153,7 @@ export default function UploadZone({
                   <UploadCloud size={36} strokeWidth={1.2} />
                 </div>
                 <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
-                  Drop your document PDF
+                  Drop your document or image
                 </h3>
                 <p className="text-[var(--secondary)] text-sm mb-7 max-w-xs leading-relaxed">
                   Invoices, contracts, or legal documents — up to 50 MB.

@@ -71,7 +71,7 @@ RATE_LIMIT: str = os.getenv("RATE_LIMIT", "30/minute")
 # ---------------------------------------------------------------------------
 
 MAX_UPLOAD_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
-ALLOWED_EXTENSIONS: set[str] = {".pdf", ".xlsx", ".csv"}
+ALLOWED_EXTENSIONS: set[str] = {".pdf", ".xlsx", ".csv", ".png", ".jpg", ".jpeg", ".txt", ".docx"}
 
 # ---------------------------------------------------------------------------
 # AI/ML Provider
