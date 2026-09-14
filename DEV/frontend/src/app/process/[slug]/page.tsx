@@ -56,6 +56,10 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
         const data = JSON.parse(event.data);
         console.log("SSE EVENT RECEIVED:", data);
 
+        if (data.progress === -2) {
+          return; // Ignore keep-alive pings
+        }
+
         if (data.is_excel !== undefined) {
           setIsExcel(data.is_excel);
         }
