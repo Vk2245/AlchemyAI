@@ -453,13 +453,14 @@ async def process_document(
 
         except Exception as e:
             logger.error(f"Pipeline error caught in stream: {e}")
-            error_event = {"progress": -1, "message": f"Pipeline error: {str(e)}"}
+            error_event = {"progress": -1, "message": f"Pipeline error: {str(e)}. (If this is a 'no such file' error, the file was likely deleted during a server restart. Please re-upload.)"}
             async with async_session_factory() as bg_db:
                 bg_doc = await bg_db.get(Document, doc_id)
                 if bg_doc:
                     bg_doc.status = "failed"
                     await bg_db.commit()
             yield f"data: {json.dumps(error_event)}\n\n"
+            await asyncio.sleep(1.0) # Ensure the event is flushed to the client before the connection closes
 
     return StreamingResponse(
         event_stream(),

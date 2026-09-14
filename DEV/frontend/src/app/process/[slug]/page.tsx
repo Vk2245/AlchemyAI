@@ -72,13 +72,13 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
           }]);
         }
 
-        if (data.status === "completed") {
+        if (data.status === "completed" || data.progress === 100) {
           eventSource.close();
           setStatus("completed");
           setTimeout(() => {
             router.push(`/record/${documentId}`);
           }, 1500);
-        } else if (data.status === "error") {
+        } else if (data.status === "error" || data.progress === -1) {
           eventSource.close();
           setStatus("error");
           setErrorMsg(data.message || "An error occurred during processing.");
