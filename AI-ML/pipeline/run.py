@@ -72,7 +72,7 @@ def run_pipeline(
         # Stage 2: OCR Fallback
         if ext in [".png", ".jpg", ".jpeg"] or any(p.get("char_count", 0) < 50 for p in pages):
             yield _yield_progress(25, "Running Parallel OCR & Vision Audit...")
-            pages = process_pages_with_ocr(doc_path, pages, execution_mode=execution_mode, status_callback=lambda p, m: _yield_progress(p, m))
+            pages = yield from process_pages_with_ocr(doc_path, pages, execution_mode=execution_mode)
         else:
             yield _yield_progress(35, "Skipping OCR (Text is embedded)")
 

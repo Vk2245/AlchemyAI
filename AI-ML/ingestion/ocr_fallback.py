@@ -142,12 +142,13 @@ def _process_single_page(page: dict[str, Any], doc_path: str, execution_mode: st
     return page
 
 
+from typing import Any, Generator
+
 def process_pages_with_ocr(
     doc_path: str,
     pages: list[dict[str, Any]],
     execution_mode: str = "online",
-    status_callback=None
-) -> list[dict[str, Any]]:
+) -> Generator[dict[str, Any], None, list[dict[str, Any]]]:
     
     chain = OCRFallbackChain()
     
@@ -159,8 +160,7 @@ def process_pages_with_ocr(
 
     msg = f"Running PARALLEL OCR on {len(pages_to_ocr)} pages..."
     print(f"  {msg}")
-    if status_callback:
-        status_callback(25, msg)
+    yield {"progress": 25, "message": msg, "data": None}
 
     # Use ThreadPoolExecutor to run OCR calls in parallel
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
@@ -172,9 +172,8 @@ def process_pages_with_ocr(
         processed_count = 0
         for future in concurrent.futures.as_completed(futures):
             processed_count += 1
-            if status_callback:
-                progress = 25 + int(10 * (processed_count / len(pages_to_ocr)))
-                status_callback(progress, f"OCR completed for {processed_count}/{len(pages_to_ocr)} pages...")
+            progress = 25 + int(10 * (processed_count / len(pages_to_ocr)))
+            yield {"progress": progress, "message": f"OCR completed for {processed_count}/{len(pages_to_ocr)} pages...", "data": None}
     
     # Non-OCR pages are untouched, OCR pages are updated in place
     return pages
