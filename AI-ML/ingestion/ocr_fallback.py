@@ -163,7 +163,7 @@ def process_pages_with_ocr(
     yield {"progress": 25, "message": msg, "data": None}
 
     # Use ThreadPoolExecutor to run OCR calls in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         futures = {
             executor.submit(_process_single_page, page, doc_path, execution_mode, chain): page
             for page in pages_to_ocr
