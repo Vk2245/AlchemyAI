@@ -217,8 +217,9 @@ async def process_document(
                 try:
                     update = await asyncio.wait_for(q.get(), timeout=15.0)
                 except asyncio.TimeoutError:
-                    # Send a keep-alive ping to prevent proxy/load balancer timeout (e.g. Railway 100s timeout)
-                    yield ": ping\n\n"
+                    # Send a keep-alive event instead of a comment, to force flush through strict proxies like Railway
+                    ping_event = {"progress": -2, "message": "ping", "is_excel": is_excel}
+                    yield f"data: {json.dumps(ping_event)}\n\n"
                     continue
 
                 if update is None:

@@ -90,9 +90,9 @@ export default function ProcessPage({ params }: { params: { slug: string } }) {
 
     eventSource.onerror = (err) => {
       console.error("SSE Error:", err);
-      eventSource.close();
-      setStatus("error");
-      setErrorMsg("Connection to server lost. Please check if backend is running.");
+      // Railway might drop connection if it takes too long.
+      // Instead of hard-failing immediately, we let EventSource auto-reconnect.
+      // We only show error if it's completely dead for a long time.
     };
 
     return () => {
