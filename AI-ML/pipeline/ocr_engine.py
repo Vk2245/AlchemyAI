@@ -70,9 +70,9 @@ def _run_ocr_space(image_path: str) -> str:
 
 def _run_groq_vision(image_path: str) -> str:
     """
-    Attempts to extract text using Groq's Llama-3.2-11b-vision model.
+    Attempts to extract text using Groq's Qwen 2.5 VL 32B vision model.
     """
-    print("[OCR] Trying Groq Vision API...")
+    print("[OCR] Trying Groq Vision API (qwen-2.5-vl-32b-instruct)...")
     url = "https://api.groq.com/openai/v1/chat/completions"
     base64_image = encode_image_to_base64(image_path)
     
@@ -82,7 +82,7 @@ def _run_groq_vision(image_path: str) -> str:
     }
     
     payload = {
-        "model": "llama-3.2-11b-vision-preview",
+        "model": "qwen-2.5-vl-32b-instruct",
         "messages": [
             {
                 "role": "user",

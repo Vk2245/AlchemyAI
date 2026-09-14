@@ -14,6 +14,7 @@ import os
 import sys
 import json
 import base64
+import time
 from typing import Any, Optional
 
 import pymupdf
@@ -116,13 +117,13 @@ class OCRFallbackChain:
             }
         ]
 
-        # Tier 3: Groq Vision (Super fast)
+        # Tier 3: Groq Vision (Super fast) — using Qwen 3.6 27B (current production vision model)
         try:
             groq_api_key = os.getenv("GROQ_API_KEY", "")
             if groq_api_key:
-                print("  [OCR Tier 3] Trying Groq Vision...")
+                print("  [OCR Tier 3] Trying Groq Vision (qwen3.6-27b)...")
                 response = litellm.completion(
-                    model="groq/llama-3.2-11b-vision-preview",
+                    model="groq/qwen-2.5-vl-32b-instruct",
                     messages=messages,
                     temperature=0.1,
                     api_key=groq_api_key,
@@ -141,30 +142,41 @@ class OCRFallbackChain:
         except Exception as e:
             print(f"  [OCR Tier 3] Groq Vision failed: {e}")
 
-        # Tier 4: Gemini Vision
-        try:
-            print("  [OCR Tier 4] Trying Gemini Vision...")
-            gemini_api_key = os.getenv("GEMINI_API_KEY", "")
-            response = litellm.completion(
-                model=GEMINI_MODEL,
-                messages=messages,
-                temperature=0.1,
-                api_key=gemini_api_key,
-            )
-            content = response.choices[0].message.content
+        # Tier 4: Gemini Vision (with retry for rate limits)
+        gemini_api_key = os.getenv("GEMINI_API_KEY", "")
+        max_retries = 3
+        for attempt in range(max_retries):
             try:
-                clean_json = content.replace("```json", "").replace("```", "").strip()
-                data = json.loads(clean_json)
-                return {
-                    "text": data.get("extracted_text", ""),
-                    "tier": "gemini_vision",
-                    "fraud_flags": [data.get("fraud_reason")] if data.get("logo_fraud_flag") else []
-                }
-            except json.JSONDecodeError:
-                return {"text": content, "tier": "gemini_vision", "fraud_flags": []}
-        except Exception as e:
-            print(f"  [OCR Tier 4] Gemini Vision failed: {e}")
-            return {"text": "", "tier": "failed", "fraud_flags": []}
+                print(f"  [OCR Tier 4] Trying Gemini Vision (attempt {attempt + 1}/{max_retries})...")
+                response = litellm.completion(
+                    model=GEMINI_MODEL,
+                    messages=messages,
+                    temperature=0.1,
+                    api_key=gemini_api_key,
+                )
+                content = response.choices[0].message.content
+                try:
+                    clean_json = content.replace("```json", "").replace("```", "").strip()
+                    data = json.loads(clean_json)
+                    return {
+                        "text": data.get("extracted_text", ""),
+                        "tier": "gemini_vision",
+                        "fraud_flags": [data.get("fraud_reason")] if data.get("logo_fraud_flag") else []
+                    }
+                except json.JSONDecodeError:
+                    return {"text": content, "tier": "gemini_vision", "fraud_flags": []}
+            except Exception as e:
+                error_str = str(e)
+                # If rate limited, wait and retry
+                if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str or "RateLimitError" in error_str:
+                    wait_time = 30 * (attempt + 1)  # 30s, 60s, 90s
+                    print(f"  [OCR Tier 4] Rate limited. Waiting {wait_time}s before retry...")
+                    time.sleep(wait_time)
+                    continue
+                print(f"  [OCR Tier 4] Gemini Vision failed: {e}")
+                break
+
+        return {"text": "", "tier": "failed", "fraud_flags": []}
 
 
 def needs_ocr(page_data: dict[str, Any]) -> bool:
