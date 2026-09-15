@@ -120,8 +120,8 @@ def process_unilog_catalogue(input_file: str):
     from pydantic import BaseModel
     from config.llm_client import get_structured_output
     
-    # Scaled down workers to prevent hitting API rate limits on Groq/Gemini free tiers
-    MAX_WORKERS = 2
+    # Scaled down workers and batch size to prevent hitting API rate limits on Groq/Gemini free tiers (8000 TPM limit)
+    MAX_WORKERS = 1
     MAX_RETRIES = 2
     
     # Filter valid rows first
@@ -161,15 +161,15 @@ def process_unilog_catalogue(input_file: str):
     class BatchExcelResult(BaseModel):
         items: list[ExcelRowResult]
     
-    # Chunk the valid rows into batches of 35 to drastically reduce API calls
-    BATCH_SIZE = 35
+    # Chunk the valid rows into smaller batches to reduce token usage per request
+    BATCH_SIZE = 20
     row_batches = [valid_rows[i:i + BATCH_SIZE] for i in range(0, total_valid, BATCH_SIZE)]
     total_batches = len(row_batches)
     
     def process_batch(batch):
         import time
-        # Small delay to prevent bursting API limits
-        time.sleep(2)
+        # 15 second delay to strictly respect the 8000 TPM rate limit (approx 3-4 requests per min)
+        time.sleep(15)
         
         # Build a single prompt for all items in the batch
         batch_text = "\n".join([f"ID: PROD_{idx:04d} | Desc: {raw_desc}" for idx, raw_desc in batch])
