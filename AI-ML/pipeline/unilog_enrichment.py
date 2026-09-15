@@ -109,12 +109,10 @@ def process_unilog_catalogue(input_file: str):
     total_items = len(df)
     
     # ---------------------------------------------------------
-    # Processing 15 items for demonstration to avoid API Rate Limits (429)
-    # on free Groq/Gemini tiers, which only allow 15 RPM.
+    # Removed the 15-item limit to process the full catalogue.
     # ---------------------------------------------------------
-    df = df.head(15)
     
-    yield {"progress": 10, "message": f"Loaded {total_items} items (Demo mode: processing top 15 to respect 15 RPM Free API limits). Starting REAL LLM enrichment..."}
+    yield {"progress": 10, "message": f"Loaded {total_items} items. Starting REAL LLM enrichment..."}
     
     results = []
     import concurrent.futures
@@ -122,8 +120,8 @@ def process_unilog_catalogue(input_file: str):
     from pydantic import BaseModel
     from config.llm_client import get_structured_output
     
-    # Reduced workers to avoid hammering free tier APIs
-    MAX_WORKERS = 2
+    # Scaled up workers for 1000+ row processing
+    MAX_WORKERS = 10
     MAX_RETRIES = 2
     
     # Filter valid rows first
@@ -169,12 +167,12 @@ def process_unilog_catalogue(input_file: str):
         system = "You are an industrial data extraction assistant. Categorize the item, clean up the description, and extract Material and Size if present. Output valid JSON."
         
         try:
-            # We use 'groq' for blazing fast extraction, fallback to gemini handled internally
+            # We use DEFAULT_PROVIDER so it routes to the configured elite model (e.g. Cerebras)
             res = get_structured_output(
                 prompt=prompt,
                 response_model=ExcelRowResult,
                 system_prompt=system,
-                provider="groq",
+                provider=DEFAULT_PROVIDER,
                 temperature=0.1
             )
             
