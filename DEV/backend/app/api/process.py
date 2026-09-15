@@ -268,8 +268,50 @@ async def process_document(
                         content_hash = compute_content_hash(category_record)
                         
                         # -------------------------------------------------------
-                        # STEP 1: Save results to DB FIRST (so data is never lost)
+                        # STEP 1: Save results + basic report to DB FIRST
                         # -------------------------------------------------------
+                        report_input_basic = {
+                            "record": {
+                                "document_title": f"Bulk Catalog Data ({len(final_grouped_data)} Categories)",
+                                "primary_party": "Multiple Brands",
+                                "document_type": "Multiple",
+                                "category": "Bulk Upload",
+                                "summary": f"Successfully parsed and structured {category_record['total_items']} items from the uploaded bulk catalog spreadsheet into {len(final_grouped_data)} standardized categories.",
+                                "record_confidence": 0.95,
+                                "validation_passed": True,
+                                "record_data": category_record
+                            },
+                            "risks": {
+                                "overall_risk_level": "medium",
+                                "detected_risks": ["Review manual items for compliance"]
+                            },
+                            "web_results": f"Bulk generated from Excel upload. Represents {category_record['total_items']} items.",
+                            "agent_log": []
+                        }
+                        
+                        # Generate a basic report immediately (no web research yet)
+                        try:
+                            basic_agent_log = [report_input_basic["web_results"]]
+                            report_md = generate_report_markdown(
+                                record=report_input_basic["record"],
+                                risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": "Review manual items for compliance"}],
+                                agent_log=basic_agent_log
+                            )
+                            html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
+                            
+                            report_id = f"Excel_Bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                            report_pdf_path = REPORTS_DIR / f"report_{report_id}.pdf"
+                            html_path = REPORTS_DIR / f"report_{report_id}.html"
+                            
+                            render_to_pdf(html_content, str(report_pdf_path))
+                            with open(html_path, "w", encoding="utf-8") as f:
+                                f.write(html_content)
+                        except Exception as e:
+                            logger.error(f"Failed to generate initial PDF report for Excel: {e}")
+                            report_md = "Report generation pending."
+                            html_path = ""
+                            report_pdf_path = ""
+                        
                         async with async_session_factory() as bg_db:
                             bg_doc = await bg_db.get(Document, doc_id)
                             if bg_doc:
@@ -293,6 +335,15 @@ async def process_document(
                             bg_db.add(pr)
                             await bg_db.flush()
                             
+                            # Save the basic report immediately
+                            rep = Report(
+                                document_id=doc_id,
+                                report_markdown=report_md,
+                                report_html_path=str(html_path),
+                                report_pdf_path=str(report_pdf_path),
+                            )
+                            bg_db.add(rep)
+                            
                             bg_doc.status = "completed"
                             bg_doc.processed_at = datetime.now(timezone.utc)
                             
@@ -305,10 +356,10 @@ async def process_document(
                             ))
                             await bg_db.commit()
                         
-                        yield f"data: {json.dumps({'progress': 97, 'message': f'Results saved. Conducting web research on {len(final_grouped_data)} clusters...', 'is_excel': True})}\n\n"
+                        yield f"data: {json.dumps({'progress': 97, 'message': f'Results & report saved. Running web research on {len(final_grouped_data)} clusters (best-effort)...', 'is_excel': True})}\n\n"
 
                         # -------------------------------------------------------
-                        # STEP 2: Web research in parallel with a strict timeout
+                        # STEP 2: Best-effort web research (non-fatal if SSE dies)
                         # -------------------------------------------------------
                         agent_log = []
                         web_research_summary = []
@@ -325,10 +376,10 @@ async def process_document(
                                 return cat_name, {"summary": "Research failed.", "flags": [], "tier": "failed"}
                         
                         try:
-                            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+                            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
                                 futures = {pool.submit(_do_research, c): c for c in categories_to_research}
-                                # Strict 15 second timeout for ALL research combined
-                                done, not_done = concurrent.futures.wait(futures, timeout=15)
+                                # Strict 10 second timeout for ALL research combined
+                                done, not_done = concurrent.futures.wait(futures, timeout=10)
                                 
                                 for future in done:
                                     cat_name, research_result = future.result()
@@ -341,81 +392,41 @@ async def process_document(
                                         })
                                         web_research_summary.append(f"**{cat_name}**: {research_result['summary']}")
                                 
-                                # Cancel anything that didn't finish in time
                                 for future in not_done:
                                     future.cancel()
                         except Exception as e:
                             logger.warning(f"Web research phase failed (non-fatal): {e}")
                         
-                        # Format the overall web results string
+                        # If we got web research results, update the report
                         if web_research_summary:
-                            web_results_text = "Agentic Research Findings on Product Clusters:\n" + "\n".join(web_research_summary)
-                        else:
-                            web_results_text = f"Bulk generated from Excel upload. Represents {category_record['total_items']} items."
-                        
-                        yield f"data: {json.dumps({'progress': 98, 'message': 'Generating PDF report...', 'is_excel': True})}\n\n"
-
-                        # -------------------------------------------------------
-                        # STEP 3: Generate report and update DB record
-                        # -------------------------------------------------------
-                        report_input = {
-                            "record": {
-                                "document_title": f"Bulk Catalog Data ({len(final_grouped_data)} Categories)",
-                                "primary_party": "Multiple Brands",
-                                "document_type": "Multiple",
-                                "category": "Bulk Upload",
-                                "summary": f"Successfully parsed and structured {category_record['total_items']} items from the uploaded bulk catalog spreadsheet into {len(final_grouped_data)} standardized categories.",
-                                "record_confidence": 0.95,
-                                "validation_passed": True,
-                                "record_data": category_record
-                            },
-                            "risks": {
-                                "overall_risk_level": "medium",
-                                "detected_risks": ["Review manual items for compliance"]
-                            },
-                            "web_results": web_results_text,
-                            "agent_log": agent_log
-                        }
-                        
-                        try:
-                            combined_agent_log = report_input.get("agent_log", [])
-                            if report_input.get("web_results"):
-                                combined_agent_log.insert(0, report_input["web_results"])
-                            
-                            report_md = generate_report_markdown(
-                                record=report_input["record"],
-                                risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
-                                agent_log=combined_agent_log
-                            )
-                            html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
-                            
-                            report_id = f"Excel_Bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                            report_pdf_path = REPORTS_DIR / f"report_{report_id}.pdf"
-                            html_path = REPORTS_DIR / f"report_{report_id}.html"
-                            
-                            render_to_pdf(html_content, str(report_pdf_path))
-                            with open(html_path, "w", encoding="utf-8") as f:
-                                f.write(html_content)
-                        except Exception as e:
-                            logger.error(f"Failed to generate PDF report for Excel: {e}")
-                            report_md = "Failed to generate report."
-                            html_path = ""
-                            report_pdf_path = ""
-                        
-                        # Update the record with the report
-                        try:
-                            async with async_session_factory() as bg_db2:
-                                if report_md and report_md != "Failed to generate report.":
-                                    rep = Report(
+                            try:
+                                web_results_text = "Agentic Research Findings on Product Clusters:\n" + "\n".join(web_research_summary)
+                                combined_agent_log = list(agent_log)
+                                combined_agent_log.insert(0, web_results_text)
+                                
+                                updated_report_md = generate_report_markdown(
+                                    record=report_input_basic["record"],
+                                    risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": "Review manual items for compliance"}],
+                                    agent_log=combined_agent_log
+                                )
+                                updated_html = render_to_html(updated_report_md, title="Intelligence Report: Bulk Upload")
+                                
+                                render_to_pdf(updated_html, str(report_pdf_path))
+                                with open(html_path, "w", encoding="utf-8") as f:
+                                    f.write(updated_html)
+                                
+                                async with async_session_factory() as bg_db3:
+                                    await bg_db3.execute(delete(Report).where(Report.document_id == doc_id))
+                                    updated_rep = Report(
                                         document_id=doc_id,
-                                        report_markdown=report_md,
+                                        report_markdown=updated_report_md,
                                         report_html_path=str(html_path),
                                         report_pdf_path=str(report_pdf_path),
                                     )
-                                    bg_db2.add(rep)
-                                    await bg_db2.commit()
-                        except Exception as e:
-                            logger.error(f"Failed to save report to DB (non-fatal): {e}")
+                                    bg_db3.add(updated_rep)
+                                    await bg_db3.commit()
+                            except Exception as e:
+                                logger.warning(f"Failed to update report with web research (non-fatal): {e}")
 
                         event_data = {
                             "progress": 100,
