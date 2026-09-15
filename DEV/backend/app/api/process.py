@@ -314,11 +314,14 @@ async def process_document(
                             }
                             
                             try:
+                                combined_agent_log = report_input.get("agent_log", [])
+                                if report_input.get("web_results"):
+                                    combined_agent_log.insert(0, report_input["web_results"])
+                                
                                 report_md = generate_report_markdown(
                                     record=report_input["record"],
                                     risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
-                                    agent_log=report_input.get("agent_log", []),
-                                    web_results=report_input.get("web_results")
+                                    agent_log=combined_agent_log
                                 )
                                 html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
                                 
@@ -422,9 +425,14 @@ async def process_document(
                                     from onepager.render_output import render_to_html, render_to_pdf
                                     
                                     narrative_md = data.get("report_md")
+                                    
+                                    # Convert list of strings to list of dicts for the report generator
+                                    raw_risks = data.get("risks", {}).get("detected_risks", [])
+                                    formatted_risks = [{"severity": "medium", "rule_name": "Risk Flag", "explanation": str(r)} for r in raw_risks]
+                                    
                                     report_md = generate_report_markdown(
                                         record=record_data,
-                                        risk_flags=data.get("risks", {}).get("detected_risks", []),
+                                        risk_flags=formatted_risks,
                                         agent_log=data.get("agent_log", []),
                                         onepager_md=narrative_md
                                     )
