@@ -87,6 +87,6 @@ PROVIDER_MODELS: dict[str, str] = {
     "gemini": GEMINI_MODEL,
 }
 
-DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "groq")
+DEFAULT_PROVIDER: str = os.getenv("DEFAULT_PROVIDER", "cerebras")
 VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "groq")
 
