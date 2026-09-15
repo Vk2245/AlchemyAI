@@ -238,6 +238,7 @@ def process_unilog_catalogue(input_file: str):
             progress_pct = 10 + int(80 * (processed_batches / total_batches))
             
             # Use the description of the first item in the batch for the log message
+            items_processed = len(results)
             latest_desc = batch_results[0].get("INPUT - Part_Desc", "")[:30] if batch_results else "Unknown"
             yield {"progress": progress_pct, "message": f"Processing batch {processed_batches}/{total_batches} ({items_processed}/{total_valid} items): {latest_desc}..."}
 
