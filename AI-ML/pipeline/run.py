@@ -91,7 +91,7 @@ def run_pipeline(
 
         # Stage 4: Entity Extraction
         yield _yield_progress(55, "Performing Adaptive NER and Data Extraction...")
-        record = extract_record_from_evidence(evidence, provider="gemini") # Always use Gemini for structured JSON
+        record = extract_record_from_evidence(evidence, provider=provider)
         
         # Stage 5: Classification
         yield _yield_progress(70, "Dynamically Classifying Document...")
