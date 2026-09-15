@@ -269,6 +269,35 @@ async def process_document(
                         from report.generate_report import generate_report_markdown
                         from onepager.render_output import render_to_html, render_to_pdf
                         
+                        import os
+                        import sys
+                        if str(AI_ML_DIR) not in sys.path:
+                            sys.path.insert(0, str(AI_ML_DIR))
+                        from agent.web_research import research_category
+                        
+                        yield f"data: {json.dumps({'progress': 98, 'message': f'Conducting web research on {len(final_grouped_data)} clusters...', 'is_excel': True})}\n\n"
+                        
+                        # Conduct agentic web research on each category cluster
+                        agent_log = []
+                        web_research_summary = []
+                        for cat_name in final_grouped_data.keys():
+                            if cat_name != "Miscellaneous Categories":
+                                research_result = research_category(cat_name)
+                                if research_result["tier"] != "failed":
+                                    agent_log.append({
+                                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                                        "action": "web_research",
+                                        "details": f"Researched category '{cat_name}' via {research_result['tier']}",
+                                        "result": "Success"
+                                    })
+                                    web_research_summary.append(f"**{cat_name}**: {research_result['summary']}")
+                                    
+                        # Format the overall web results string
+                        if web_research_summary:
+                            web_results_text = "Agentic Research Findings on Product Clusters:\n" + "\n".join(web_research_summary)
+                        else:
+                            web_results_text = f"Bulk generated from Excel upload. Represents {category_record['total_items']} items. No external research found."
+                        
                         async with async_session_factory() as bg_db:
                             bg_doc = await bg_db.get(Document, doc_id)
                             if bg_doc:
@@ -296,14 +325,16 @@ async def process_document(
                                     "overall_risk_level": "medium",
                                     "detected_risks": ["Review manual items for compliance"]
                                 },
-                                "web_results": f"Bulk generated from Excel upload. Represents {category_record['total_items']} items."
+                                "web_results": web_results_text,
+                                "agent_log": agent_log
                             }
                             
                             try:
                                 report_md = generate_report_markdown(
                                     record=report_input["record"],
                                     risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
-                                    agent_log=report_input.get("agent_log", [])
+                                    agent_log=report_input.get("agent_log", []),
+                                    web_results=report_input.get("web_results")
                                 )
                                 html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
                                 

@@ -11,6 +11,63 @@ import os
 from typing import Any
 
 from tavily import TavilyClient
+import requests
+
+def research_category(category_name: str) -> dict[str, Any]:
+    """
+    Researches an industrial product category to find general compliance, usage, and safety specs.
+    """
+    if not category_name or category_name in ["Failed", "Uncategorized"]:
+        return {"summary": "Skipped web search for invalid category.", "flags": []}
+
+    tavily_key = os.getenv("TAVILY_API_KEY")
+    serper_key = os.getenv("SERPER_API_KEY")
+    
+    query = f'"{category_name}" industrial specifications compliance safety standards'
+
+    # Tier 1: Tavily
+    if tavily_key:
+        try:
+            print(f"  [Agent] Researching category '{category_name}' via Tavily...")
+            client = TavilyClient(api_key=tavily_key)
+            response = client.search(query=query, search_depth="basic", max_results=2)
+            
+            summary = ""
+            flags = []
+            
+            for result in response.get("results", []):
+                summary += f"- {result['title']}: {result['content'][:200]}...\n"
+                
+            return {"summary": summary.strip(), "flags": flags, "tier": "tavily"}
+        except Exception as e:
+            print(f"  [Agent] Tavily failed: {e}")
+
+    # Tier 2: Serper.dev
+    if serper_key:
+        try:
+            print(f"  [Agent] Researching category '{category_name}' via Serper...")
+            url = "https://google.serper.dev/search"
+            payload = {"q": query}
+            headers = {
+                'X-API-KEY': serper_key,
+                'Content-Type': 'application/json'
+            }
+            res = requests.post(url, headers=headers, json=payload, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                summary = ""
+                for result in data.get("organic", [])[:2]:
+                    summary += f"- {result['title']}: {result['snippet']}\n"
+                
+                return {"summary": summary.strip(), "flags": [], "tier": "serper"}
+        except Exception as e:
+            print(f"  [Agent] Serper failed: {e}")
+
+    return {
+        "summary": "Agentic search skipped (API keys missing or limits exceeded).",
+        "flags": [],
+        "tier": "failed"
+    }
 
 def research_vendor(company_name: str) -> dict[str, Any]:
     """

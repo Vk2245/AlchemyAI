@@ -151,72 +151,92 @@ def process_unilog_catalogue(input_file: str):
     total_valid = len(valid_rows)
     
     class ExcelRowResult(BaseModel):
+        Item_ID: str
         Category: str
         Description: str
         Material: str
         Size: str
         Confidence: float
-    
-    def process_single_item(item):
-        idx, raw_desc = item
         
-        # -------------------------------------------------------------
-        # Call the ACTUAL LLM to structure this row
-        # -------------------------------------------------------------
-        prompt = f"Extract structured product attributes from this messy catalog description:\n\n{raw_desc}"
-        system = "You are an industrial data extraction assistant. Categorize the item, clean up the description, and extract Material and Size if present. Output valid JSON."
+    class BatchExcelResult(BaseModel):
+        items: list[ExcelRowResult]
+    
+    # Chunk the valid rows into batches of 35 to drastically reduce API calls
+    BATCH_SIZE = 35
+    row_batches = [valid_rows[i:i + BATCH_SIZE] for i in range(0, total_valid, BATCH_SIZE)]
+    total_batches = len(row_batches)
+    
+    def process_batch(batch):
+        # Build a single prompt for all items in the batch
+        batch_text = "\n".join([f"ID: PROD_{idx:04d} | Desc: {raw_desc}" for idx, raw_desc in batch])
+        
+        prompt = f"Extract structured product attributes for the following {len(batch)} items. Make sure to return exactly {len(batch)} items and include their respective Item_IDs.\n\n{batch_text}"
+        system = "You are an industrial data extraction assistant. Categorize each item, clean up the description, and extract Material and Size if present. Output a JSON list of items matching the schema."
         
         try:
-            # We use DEFAULT_PROVIDER so it routes to the configured elite model (e.g. Cerebras)
             res = get_structured_output(
                 prompt=prompt,
-                response_model=ExcelRowResult,
+                response_model=BatchExcelResult,
                 system_prompt=system,
                 provider=DEFAULT_PROVIDER,
                 temperature=0.1
             )
             
-            result_row = {
-                "Item_ID": f"PROD_{idx:04d}",
-                "INPUT - Part_Desc": raw_desc,
-                "Category": res.Category,
-                "Description": res.Description,
-                "Material": res.Material,
-                "Size": res.Size,
-                "Confidence": res.Confidence
-            }
-            return result_row
+            # Map back to original row structure
+            batch_results = []
+            
+            # Create a lookup for the original raw descriptions
+            desc_lookup = {f"PROD_{idx:04d}": raw_desc for idx, raw_desc in batch}
+            
+            for item in res.items:
+                raw_desc = desc_lookup.get(item.Item_ID, "")
+                batch_results.append({
+                    "Item_ID": item.Item_ID,
+                    "INPUT - Part_Desc": raw_desc,
+                    "Category": item.Category,
+                    "Description": item.Description,
+                    "Material": item.Material,
+                    "Size": item.Size,
+                    "Confidence": item.Confidence
+                })
+            return batch_results
             
         except Exception as e:
-            # Fallback if API fails for this specific row
-            return {
-                "Item_ID": f"PROD_{idx:04d}",
-                "INPUT - Part_Desc": raw_desc,
-                "Category": "Failed",
-                "Description": f"Failed to extract: {str(e)[:50]}",
-                "Material": "N/A",
-                "Size": "N/A",
-                "Confidence": 0.0
-            }
+            # Fallback for the whole batch if API fails
+            failed_batch = []
+            for idx, raw_desc in batch:
+                failed_batch.append({
+                    "Item_ID": f"PROD_{idx:04d}",
+                    "INPUT - Part_Desc": raw_desc,
+                    "Category": "Failed",
+                    "Description": f"Failed to extract batch: {str(e)[:50]}",
+                    "Material": "N/A",
+                    "Size": "N/A",
+                    "Confidence": 0.0
+                })
+            return failed_batch
+        
+
 
     results = []
-    processed_count = 0
+    processed_batches = 0
     
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        # Submit all tasks
-        future_to_item = {executor.submit(process_single_item, item): item for item in valid_rows}
+        # Submit all batch tasks
+        future_to_batch = {executor.submit(process_batch, batch): batch for batch in row_batches}
         
-        for future in concurrent.futures.as_completed(future_to_item):
-            processed_count += 1
-            result = future.result()
-            results.append(result)
+        for future in concurrent.futures.as_completed(future_to_batch):
+            processed_batches += 1
+            batch_results = future.result()
+            results.extend(batch_results)
             
-            # Yield progress every 5 items to avoid flooding the frontend SSE queue
-            if processed_count % 5 == 0 or processed_count == total_valid:
-                progress_pct = 10 + int(80 * (processed_count / total_valid))
-                # Get the description of the latest processed item for the status message
-                latest_desc = result.get("INPUT - Part_Desc", "")[:30]
-                yield {"progress": progress_pct, "message": f"Processing item {processed_count}/{total_valid}: {latest_desc}..."}
+            # Yield progress after each batch
+            progress_pct = 10 + int(80 * (processed_batches / total_batches))
+            
+            # Use the description of the first item in the batch for the log message
+            latest_desc = batch_results[0].get("INPUT - Part_Desc", "")[:30] if batch_results else "Unknown"
+            items_processed = min(processed_batches * BATCH_SIZE, total_valid)
+            yield {"progress": progress_pct, "message": f"Processing cluster {processed_batches}/{total_batches} ({items_processed}/{total_valid} items): {latest_desc}..."}
 
     # Compute statistics
     success_count = sum(1 for r in results if r.get("Category", "Failed") != "Failed")
