@@ -18,7 +18,7 @@ def research_category(category_name: str) -> dict[str, Any]:
     Researches an industrial product category to find general compliance, usage, and safety specs.
     """
     if not category_name or category_name in ["Failed", "Uncategorized"]:
-        return {"summary": "Skipped web search for invalid category.", "flags": []}
+        return {"summary": "Skipped web search for invalid category.", "flags": [], "tier": "failed"}
 
     tavily_key = os.getenv("TAVILY_API_KEY")
     serper_key = os.getenv("SERPER_API_KEY")
@@ -75,7 +75,7 @@ def research_vendor(company_name: str) -> dict[str, Any]:
     Returns a dictionary with the research summary and any red flags.
     """
     if not company_name:
-        return {"summary": "No company name provided.", "flags": []}
+        return {"summary": "No company name provided.", "flags": [], "tier": "failed"}
 
     tavily_key = os.getenv("TAVILY_API_KEY")
     serper_key = os.getenv("SERPER_API_KEY")

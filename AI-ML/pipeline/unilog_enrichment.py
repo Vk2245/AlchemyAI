@@ -162,14 +162,14 @@ def process_unilog_catalogue(input_file: str):
         items: list[ExcelRowResult]
     
     # Chunk the valid rows into smaller batches to reduce token usage per request
-    BATCH_SIZE = 20
+    BATCH_SIZE = 15
     row_batches = [valid_rows[i:i + BATCH_SIZE] for i in range(0, total_valid, BATCH_SIZE)]
     total_batches = len(row_batches)
     
     def process_batch(batch):
         import time
-        # 15 second delay to strictly respect the 8000 TPM rate limit (approx 3-4 requests per min)
-        time.sleep(15)
+        # 16 second delay to strictly respect the 8000 TPM rate limit (approx 3.5 requests per min)
+        time.sleep(16)
         
         # Build a single prompt for all items in the batch
         batch_text = "\n".join([f"ID: PROD_{idx:04d} | Desc: {raw_desc}" for idx, raw_desc in batch])
@@ -239,8 +239,7 @@ def process_unilog_catalogue(input_file: str):
             
             # Use the description of the first item in the batch for the log message
             latest_desc = batch_results[0].get("INPUT - Part_Desc", "")[:30] if batch_results else "Unknown"
-            items_processed = min(processed_batches * BATCH_SIZE, total_valid)
-            yield {"progress": progress_pct, "message": f"Processing cluster {processed_batches}/{total_batches} ({items_processed}/{total_valid} items): {latest_desc}..."}
+            yield {"progress": progress_pct, "message": f"Processing batch {processed_batches}/{total_batches} ({items_processed}/{total_valid} items): {latest_desc}..."}
 
     # Compute statistics
     success_count = sum(1 for r in results if r.get("Category", "Failed") != "Failed")
