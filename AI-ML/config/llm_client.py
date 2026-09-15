@@ -22,6 +22,7 @@ from config.settings import (
     GROQ_API_KEY,
     GEMINI_API_KEY,
     FALLBACK_GEMINI_API_KEY,
+    CEREBRAS_API_KEY,
 )
 
 # Prevent crashes when falling back to providers that don't support certain kwargs
