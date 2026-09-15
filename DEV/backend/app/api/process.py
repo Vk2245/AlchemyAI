@@ -299,20 +299,26 @@ async def process_document(
                                 "web_results": f"Bulk generated from Excel upload. Represents {category_record['total_items']} items."
                             }
                             
-                            report_md = generate_report_markdown(
-                                record=report_input["record"],
-                                risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
-                                agent_log=report_input.get("agent_log", [])
-                            )
-                            html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
-                            
-                            report_id = f"Excel_Bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                            report_pdf_path = REPORTS_DIR / f"report_{report_id}.pdf"
-                            html_path = REPORTS_DIR / f"report_{report_id}.html"
-                            
-                            render_to_pdf(html_content, str(report_pdf_path))
-                            with open(html_path, "w", encoding="utf-8") as f:
-                                f.write(html_content)
+                            try:
+                                report_md = generate_report_markdown(
+                                    record=report_input["record"],
+                                    risk_flags=[{"severity": "medium", "rule_name": "Bulk Excel Upload", "explanation": report_input["risks"]["detected_risks"][0]}],
+                                    agent_log=report_input.get("agent_log", [])
+                                )
+                                html_content = render_to_html(report_md, title="Intelligence Report: Bulk Upload")
+                                
+                                report_id = f"Excel_Bulk_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                                report_pdf_path = REPORTS_DIR / f"report_{report_id}.pdf"
+                                html_path = REPORTS_DIR / f"report_{report_id}.html"
+                                
+                                render_to_pdf(html_content, str(report_pdf_path))
+                                with open(html_path, "w", encoding="utf-8") as f:
+                                    f.write(html_content)
+                            except Exception as e:
+                                logger.error(f"Failed to generate PDF report for Excel: {e}")
+                                report_md = "Failed to generate report."
+                                html_path = ""
+                                report_pdf_path = ""
                                 
                             content_hash = compute_content_hash(category_record)
                             

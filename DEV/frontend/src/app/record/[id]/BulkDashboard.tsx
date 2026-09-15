@@ -91,7 +91,10 @@ export default function BulkDashboard({ recordData }: BulkDashboardProps) {
       .filter(([cat]) => cat !== "Failed")
       .sort((a, b) => b[1] - a[1])
       .slice(0, 12)
-      .map(([name, count]) => ({ name: name.length > 18 ? name.slice(0, 16) + "…" : name, fullName: name, count }));
+      .map(([name, count]) => {
+        const safeName = String(name || "Uncategorized");
+        return { name: safeName.length > 18 ? safeName.slice(0, 16) + "…" : safeName, fullName: safeName, count };
+      });
   }, [computedStats]);
 
   // Pie data for success vs failure

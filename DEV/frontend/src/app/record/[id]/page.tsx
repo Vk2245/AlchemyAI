@@ -199,7 +199,20 @@ export default function RecordPage({ params }: { params: { id: string } }) {
     );
   }
 
-  if (!record) return null;
+  if (!record) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4 px-4">
+        <ShieldAlert size={48} className="text-red-400 opacity-80" />
+        <h2 className="text-xl font-bold text-white">Pipeline Error or Record Not Found</h2>
+        <p className="text-[var(--secondary)] text-sm max-w-md">
+          The processing for this document may have failed midway, preventing the final results from saving. Please re-upload the document and try again.
+        </p>
+        <Link href="/dashboard" className="bg-white/5 hover:bg-white/10 px-6 py-2.5 mt-2 rounded-xl text-sm transition-colors border border-white/10">
+          Return to Dashboard
+        </Link>
+      </div>
+    );
+  }
 
   const confPct = (record.record_confidence * 100).toFixed(0);
   const isBulk = !!record.record_data.categories;
