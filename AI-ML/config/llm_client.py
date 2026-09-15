@@ -30,12 +30,7 @@ litellm.drop_params = True
 # Suppress litellm's verbose logging
 litellm.suppress_debug_info = True
 
-# Map hackathon demo model names to real supported model endpoints
-litellm.model_alias_map = {
-    "cerebras/gpt-oss-120b": "cerebras/llama3.1-70b",
-    "cerebras/qwen-3.8-27b": "cerebras/llama3.1-70b",
-    "groq/openai/gpt-oss-20b": "groq/llama3-70b-8192",
-}
+# Removed alias map to allow direct calling of specific models
 
 T = TypeVar("T", bound=BaseModel)
 

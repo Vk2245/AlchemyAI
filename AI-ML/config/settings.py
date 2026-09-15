@@ -53,16 +53,16 @@ VLLM_MODEL: str = os.getenv("VLLM_MODEL", "Qwen/Qwen2-VL-2B-Instruct-AWQ")
 # ---------------------------------------------------------------------------
 
 CEREBRAS_API_KEY: str = os.getenv("CEREBRAS_API_KEY", "")
-CEREBRAS_MODEL: str = os.getenv("CEREBRAS_MODEL", "cerebras/gpt-oss-120b")
-CEREBRAS_EXTRACTION_MODEL: str = os.getenv("CEREBRAS_EXTRACTION_MODEL", "cerebras/qwen-3.8-27b")
+CEREBRAS_MODEL: str = os.getenv("CEREBRAS_MODEL", "cerebras/llama3.3-70b")
+CEREBRAS_EXTRACTION_MODEL: str = os.getenv("CEREBRAS_EXTRACTION_MODEL", "cerebras/llama3.3-70b")
 
 # ---------------------------------------------------------------------------
 # Groq
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-20b")
-GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt-oss-20b")
+GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-120b")
+GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt-oss-120b")
 
 # ---------------------------------------------------------------------------
 # Gemini (Fallback for extraction)
