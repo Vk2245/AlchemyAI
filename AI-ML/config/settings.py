@@ -71,7 +71,7 @@ GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 FALLBACK_GEMINI_API_KEY: str = os.getenv("FALLBACK_GEMINI_API_KEY", "")
 GEMINI_API_KEYS: list[str] = [k for k in (GEMINI_API_KEY, FALLBACK_GEMINI_API_KEY) if k]
-GEMINI_MODEL: str = "gemini/gemini-3.6-flash"  # Hardcoded to bypass old Railway env vars
+GEMINI_MODEL: str = "gemini/gemini-1.5-flash"  # Hardcoded to bypass old Railway env vars
 
 
 # ---------------------------------------------------------------------------
