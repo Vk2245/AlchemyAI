@@ -21,7 +21,7 @@ class ExtractedEntity(BaseModel):
         default=None, description="Unit if applicable, e.g. 'USD', 'kg'"
     )
     numeric_value: Optional[float] = Field(
-        default=None, description="Parsed numeric value if the attribute is numeric"
+        default=None, description="Parsed numeric value ONLY if the entity is a number or money (e.g., 2972.5). DO NOT put dates or text here. Must be a valid float or null."
     )
     source_text: Optional[str] = Field(
         default=None,
