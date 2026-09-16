@@ -315,7 +315,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
               </p>
               <p className="text-xs text-[var(--muted)] mt-2">
                 {record.risks.length > 0 ? (
-                  <>{record.risks.filter((r: any) => r.status === "pass").length}/{record.risks.length} checks passed</>
+                  <>{record.risks.filter((r: any) => typeof r === 'object' ? r.status === "pass" : false).length}/{record.risks.length} checks passed</>
                 ) : (
                   <>No safety checks required</>
                 )}
@@ -522,30 +522,36 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                         <p className="text-[var(--secondary)] text-sm">No safety checks were configured or required for this document.</p>
                       </div>
                     ) : (
-                      record.risks.map((r: any, i: number) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 6 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                          className="flex items-center justify-between py-3 px-4 bg-white/[0.02] rounded-xl border border-white/5"
-                        >
-                          <span className="text-sm text-gray-300">{r.rule}</span>
-                          <span
-                            className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${r.status === "pass"
-                                ? "text-emerald-400"
-                                : "text-red-400"
-                              }`}
+                      record.risks.map((r: any, i: number) => {
+                        const isString = typeof r === "string";
+                        const ruleText = isString ? r : (r.rule || r.explanation || "Risk Flag");
+                        const statusText = isString ? "fail" : (r.status || "fail");
+                        
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="flex items-center justify-between py-3 px-4 bg-white/[0.02] rounded-xl border border-white/5"
                           >
-                            {r.status === "pass" ? (
-                              <CheckCircle2 size={14} />
-                            ) : (
-                              <ShieldAlert size={14} />
-                            )}
-                            {r.status}
-                          </span>
-                        </motion.div>
-                      ))
+                            <span className="text-sm text-gray-300">{ruleText}</span>
+                            <span
+                              className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${statusText === "pass"
+                                  ? "text-emerald-400"
+                                  : "text-red-400"
+                                }`}
+                            >
+                              {statusText === "pass" ? (
+                                <CheckCircle2 size={14} />
+                              ) : (
+                                <ShieldAlert size={14} />
+                              )}
+                              {statusText}
+                            </span>
+                          </motion.div>
+                        );
+                      })
                     )}
                   </motion.div>
                 )}
