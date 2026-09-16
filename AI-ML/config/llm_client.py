@@ -20,6 +20,7 @@ from config.settings import (
     DEFAULT_PROVIDER,
     VLLM_BASE_URL,
     GROQ_API_KEY,
+    GROQ_FALLBACK_API_KEY,
     GEMINI_API_KEY,
     FALLBACK_GEMINI_API_KEY,
     CEREBRAS_API_KEY,
@@ -57,6 +58,8 @@ def _build_kwargs(provider: str) -> dict[str, Any]:
         kwargs["api_key"] = CEREBRAS_API_KEY
     elif provider == "groq":
         kwargs["api_key"] = GROQ_API_KEY
+    elif provider == "groq_fallback":
+        kwargs["api_key"] = GROQ_FALLBACK_API_KEY
     elif provider == "gemini":
         kwargs["api_key"] = GEMINI_API_KEY
         kwargs["safety_settings"] = [
@@ -93,15 +96,20 @@ def get_completion(
     providers_to_try = [provider]
     if provider == "cerebras":
         if GROQ_API_KEY: providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "groq":
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "groq_fallback":
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "vllm":
         if CEREBRAS_API_KEY: providers_to_try.append("cerebras")
         if GROQ_API_KEY: providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "gemini":
-        if GROQ_API_KEY: providers_to_try.append("groq")
+        pass
 
     last_error = None
     for current_provider in providers_to_try:
@@ -147,15 +155,20 @@ async def get_completion_stream(
     providers_to_try = [provider]
     if provider == "cerebras":
         if GROQ_API_KEY: providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "groq":
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
+        if GEMINI_API_KEY: providers_to_try.append("gemini")
+    elif provider == "groq_fallback":
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "vllm":
         if CEREBRAS_API_KEY: providers_to_try.append("cerebras")
         if GROQ_API_KEY: providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY: providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY: providers_to_try.append("gemini")
     elif provider == "gemini":
-        if GROQ_API_KEY: providers_to_try.append("groq")
+        pass
 
     last_error = None
     for current_provider in providers_to_try:
@@ -209,9 +222,16 @@ def get_structured_output(
     if provider == "cerebras":
         if GROQ_API_KEY:
             providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY:
+            providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY:
             providers_to_try.append("gemini")
     elif provider == "groq":
+        if GROQ_FALLBACK_API_KEY:
+            providers_to_try.append("groq_fallback")
+        if GEMINI_API_KEY:
+            providers_to_try.append("gemini")
+    elif provider == "groq_fallback":
         if GEMINI_API_KEY:
             providers_to_try.append("gemini")
     elif provider == "vllm":
@@ -219,11 +239,12 @@ def get_structured_output(
             providers_to_try.append("cerebras")
         if GROQ_API_KEY:
             providers_to_try.append("groq")
+        if GROQ_FALLBACK_API_KEY:
+            providers_to_try.append("groq_fallback")
         if GEMINI_API_KEY:
             providers_to_try.append("gemini")
     elif provider == "gemini":
-        if GROQ_API_KEY:
-            providers_to_try.append("groq")
+        pass
 
     last_error = None
     for current_provider in providers_to_try:

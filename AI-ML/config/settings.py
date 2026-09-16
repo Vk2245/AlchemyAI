@@ -61,6 +61,7 @@ CEREBRAS_EXTRACTION_MODEL: str = os.getenv("CEREBRAS_EXTRACTION_MODEL", "cerebra
 # ---------------------------------------------------------------------------
 
 GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+GROQ_FALLBACK_API_KEY: str = os.getenv("GROQ_FALLBACK_API_KEY", "")
 GROQ_MODEL: str = os.getenv("GROQ_MODEL", "groq/openai/gpt-oss-120b")
 GROQ_EXTRACTION_MODEL: str = os.getenv("GROQ_EXTRACTION_MODEL", "groq/openai/gpt-oss-120b")
 
@@ -82,7 +83,8 @@ PROVIDER_MODELS: dict[str, str] = {
     "vllm": f"openai/{VLLM_MODEL}",
     "cerebras": CEREBRAS_MODEL,
     "cerebras_extraction": CEREBRAS_EXTRACTION_MODEL,
-    "groq": GROQ_MODEL,                    
+    "groq": GROQ_MODEL,
+    "groq_fallback": GROQ_MODEL,
     "groq_extraction": GROQ_EXTRACTION_MODEL,  
     "gemini": GEMINI_MODEL,
 }
