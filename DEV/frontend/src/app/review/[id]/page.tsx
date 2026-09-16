@@ -168,16 +168,22 @@ export default function ReviewPage() {
               <ShieldAlert size={16} /> AI Suggestions & Remediations
             </h3>
             <ul className="space-y-3">
-              {(docRecord.record_data.risks_summary?.detected_risks || docRecord.record_data.risks || []).map((risk: any, i: number) => (
-                <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
-                  <span className="shrink-0 mt-1 rounded-full w-1.5 h-1.5 bg-amber-500"></span>
-                  <div>
-                    <strong className="text-[var(--foreground)]">{risk.rule}:</strong> {risk.status}
-                    {risk.explanation && <p className="mt-1 text-xs opacity-80">{risk.explanation}</p>}
-                    {risk.remediation && <p className="mt-1 text-xs text-amber-400 opacity-90">Suggestion: {risk.remediation}</p>}
-                  </div>
-                </li>
-              ))}
+              {(docRecord.record_data.risks_summary?.detected_risks || docRecord.record_data.risks || []).map((risk: any, i: number) => {
+                const isString = typeof risk === "string";
+                const ruleText = isString ? risk : (risk.rule || risk.explanation || "Risk Flag");
+                const statusText = isString ? "Failed" : (risk.status || "Failed");
+                
+                return (
+                  <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
+                    <span className="shrink-0 mt-1 rounded-full w-1.5 h-1.5 bg-amber-500"></span>
+                    <div>
+                      <strong className="text-[var(--foreground)]">{ruleText}</strong>
+                      {!isString && risk.explanation && <p className="mt-1 text-xs opacity-80">{risk.explanation}</p>}
+                      {!isString && risk.remediation && <p className="mt-1 text-xs text-amber-400 opacity-90">Suggestion: {risk.remediation}</p>}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
