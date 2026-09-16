@@ -260,7 +260,7 @@ export default function ChatPage() {
                 className={`w-full text-left p-3 rounded-xl transition-all ${conversationId === conv.conversation_id ? "bg-[var(--accent-blue)]/10 border border-[var(--accent-blue)]/20 text-[var(--accent-blue)]" : "bg-black/[0.02] dark:bg-white/[0.02] border border-transparent hover:border-[var(--border)] text-[var(--foreground)]"}`}
               >
                 <p className="text-sm font-medium truncate mb-1">{conv.last_message}</p>
-                <p className="text-[10px] text-[var(--muted)]">{new Date(conv.last_at).toLocaleDateString()}</p>
+                <p className="text-[10px] text-[var(--muted)]">{new Date(conv.last_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "short", timeStyle: "short" })}</p>
               </button>
             ))
           )}

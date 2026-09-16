@@ -178,7 +178,7 @@ export default function DashboardPage() {
                       {rec.document_title || "Unknown Document"}
                     </h3>
                     <p className="text-xs text-[var(--muted)] mt-0.5 truncate">
-                      {rec.primary_party || "Unknown Entity"} - {rec.document_type || "Unknown Type"} - {rec.uploaded_at ? new Date(rec.uploaded_at).toLocaleDateString() : ""}
+                      {rec.primary_party || "Unknown Entity"} - {rec.document_type || "Unknown Type"} - {rec.uploaded_at ? new Date(rec.uploaded_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) + " (IST)" : ""}
                     </p>
                   </div>
                 </Link>
