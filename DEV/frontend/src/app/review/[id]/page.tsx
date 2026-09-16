@@ -87,6 +87,20 @@ export default function ReviewPage() {
     }
   };
 
+  const handleReject = async () => {
+    if (!confirm("Are you sure you want to reject this document? All data will be discarded and marked as failed.")) return;
+    try {
+      setSaving(true);
+      // Hackathon mock: Since /verify endpoint expects verified data, we just alert and go back for the demo
+      alert("Document rejected successfully. AI will use your feedback to improve.");
+      router.push(`/dashboard`);
+    } catch (err: any) {
+      alert("Error rejecting: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -118,14 +132,24 @@ export default function ReviewPage() {
             </div>
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 bg-[var(--accent-primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-full transition-all font-medium disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Verify & Save"}
-            <ShieldCheck className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleReject}
+              disabled={saving}
+              className="flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-6 py-2.5 rounded-full transition-all font-medium disabled:opacity-50 border border-red-500/20"
+            >
+              {saving ? "Processing..." : "Reject"}
+              <AlertTriangle className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 bg-[var(--accent-primary)] hover:opacity-90 text-white px-6 py-2.5 rounded-full transition-all font-medium disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Verify & Save"}
+              <ShieldCheck className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Info Banner */}
@@ -136,6 +160,27 @@ export default function ReviewPage() {
             <span>Party: {docRecord?.primary_party}</span>
           </div>
         </div>
+
+        {/* AI Remediations & Suggestions */}
+        {(docRecord?.record_data?.risks_summary?.detected_risks?.length > 0 || docRecord?.record_data?.risks?.length > 0) && (
+          <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-6 mb-4">
+            <h3 className="text-red-400 font-semibold mb-3 flex items-center gap-2">
+              <ShieldAlert size={16} /> AI Suggestions & Remediations
+            </h3>
+            <ul className="space-y-3">
+              {(docRecord.record_data.risks_summary?.detected_risks || docRecord.record_data.risks || []).map((risk: any, i: number) => (
+                <li key={i} className="text-sm text-[var(--secondary)] flex items-start gap-2">
+                  <span className="shrink-0 mt-1 rounded-full w-1.5 h-1.5 bg-amber-500"></span>
+                  <div>
+                    <strong className="text-[var(--foreground)]">{risk.rule}:</strong> {risk.status}
+                    {risk.explanation && <p className="mt-1 text-xs opacity-80">{risk.explanation}</p>}
+                    {risk.remediation && <p className="mt-1 text-xs text-amber-400 opacity-90">Suggestion: {risk.remediation}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Table */}
         <div className="glass-panel rounded-2xl border border-[var(--border)] overflow-hidden">

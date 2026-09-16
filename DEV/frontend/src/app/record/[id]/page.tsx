@@ -95,7 +95,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
             risk_level: data.document_record.risk_level || "Unknown",
             content_hash: data.document_record.content_hash || "",
             record_data: { entities: [], ...(data.document_record.record_data || {}) },
-            risks: data.document_record.risks_summary?.detected_risks || [],
+            risks: data.document_record.record_data?.risks_summary?.detected_risks || data.document_record.record_data?.risks || [],
           });
         }
       } catch (err) {
@@ -314,8 +314,11 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                 {record.risk_level}
               </p>
               <p className="text-xs text-[var(--muted)] mt-2">
-                {record.risks.filter((r) => r.status === "pass").length}/
-                {record.risks.length} checks passed
+                {record.risks.length > 0 ? (
+                  <>{record.risks.filter((r: any) => r.status === "pass").length}/{record.risks.length} checks passed</>
+                ) : (
+                  <>No safety checks required</>
+                )}
               </p>
             </div>
 
@@ -327,9 +330,11 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                 <Globe2 size={16} className="text-[var(--accent-blue)]" />
                 {record.document_type.split(" ")[0]}
               </p>
-              <p className="text-xs text-[var(--muted)] mt-2 truncate">
-                {record.category}
-              </p>
+              {record.category && record.category !== "Uncategorized" && (
+                <p className="text-xs text-[var(--muted)] mt-2 truncate">
+                  {record.category}
+                </p>
+              )}
             </div>
 
             <div className="glass-panel rounded-2xl p-5">
@@ -374,7 +379,7 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                     }`}
                 >
                   <ShieldAlert size={14} className="inline mr-2 -mt-0.5" />
-                  Safety Checks ({record.risks.length})
+                  Safety Checks ({record.risks?.length || 0})
                 </button>
                 <button
                   onClick={() => setActiveTab("dynamic")}
@@ -511,30 +516,37 @@ export default function RecordPage({ params }: { params: { id: string } }) {
                     exit={{ opacity: 0, y: -8 }}
                     className="space-y-2"
                   >
-                    {record.risks?.map((r, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex items-center justify-between py-3 px-4 bg-white/[0.02] rounded-xl border border-white/5"
-                      >
-                        <span className="text-sm text-gray-300">{r.rule}</span>
-                        <span
-                          className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${r.status === "pass"
-                              ? "text-emerald-400"
-                              : "text-red-400"
-                            }`}
+                    {(!record.risks || record.risks.length === 0) ? (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <ShieldAlert size={32} className="text-white/20 mb-3" />
+                        <p className="text-[var(--secondary)] text-sm">No safety checks were configured or required for this document.</p>
+                      </div>
+                    ) : (
+                      record.risks.map((r: any, i: number) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="flex items-center justify-between py-3 px-4 bg-white/[0.02] rounded-xl border border-white/5"
                         >
-                          {r.status === "pass" ? (
-                            <CheckCircle2 size={14} />
-                          ) : (
-                            <ShieldAlert size={14} />
-                          )}
-                          {r.status}
-                        </span>
-                      </motion.div>
-                    ))}
+                          <span className="text-sm text-gray-300">{r.rule}</span>
+                          <span
+                            className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${r.status === "pass"
+                                ? "text-emerald-400"
+                                : "text-red-400"
+                              }`}
+                          >
+                            {r.status === "pass" ? (
+                              <CheckCircle2 size={14} />
+                            ) : (
+                              <ShieldAlert size={14} />
+                            )}
+                            {r.status}
+                          </span>
+                        </motion.div>
+                      ))
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
